@@ -14,7 +14,7 @@
 
 
 // -----------------------------------------------------------------------------------------------
-class HistoConverter : public ROOT::Math::IBaseFunctionMultiDim {
+class HistoConverter { // : public ROOT::Math::IBaseFunctionMultiDim {
 public:
 	HistoConverter() : sp_(0), hist_(0), g_(0) {};
 	
@@ -25,12 +25,13 @@ public:
 	};
 
 	virtual double operator() (double *x, double *p) = 0;
-
-	double DoEval(const double * x) const { 
-		std::vector<double> xv(3,0.);
-	}
+	double operator() (double x) { return eval(x); };
+	
+	//// double DoEval(const double * x) const { 
+	//// 	return (*this)(x,0);
+	//// }
 		
-	ROOT::Math::IBaseFunctionMultiDim * Clone() const { return clone(); }
+	//// ROOT::Math::IBaseFunctionMultiDim * Clone() const { return clone(); }
 	
 	double eval(double x) { return (*this)(&x,0); };
 	virtual HistoConverter * clone() const = 0;
@@ -169,18 +170,23 @@ public:
 		{ sp_ = new TSpline3(name,g); };
 	GraphToTF1( TString name, TGraph * g, double xmin, double valmin, double xmax, double valmax ) :
 		capped_(true), xmin_(xmin), valmin_(valmin), xmax_(xmax), valmax_(valmax)
-		{ sp_ = new TSpline3(name,g); };
+		{  g_ = (TGraph*)g->Clone(name); g_->Sort(); sp_ = new TSpline3(name,g_); };
 	double operator() (double *x, double *p) {
+		double val = sp_->Eval( x[0] );
+		/// std::cout << x[0] << " " << val << std::endl;
 		if( capped_ ) {
-			if( x[0] <= xmin_ ) { return valmin_; }
-			if( x[0] >= xmax_ ) { return valmax_; }
+			if( x[0] <= xmin_ || val < valmin_ ) { return valmin_; }
+			if( x[0] >= xmax_ || val > valmax_ ) { return valmax_; }
 		}
-		return sp_->Eval( x[0] );
+		return val;
 	};
 
 	unsigned int NDim() const { return 1; }
 	HistoConverter * clone() const { new GraphToTF1(*this); };
+	TF1 * asTF1(TString name);
 
+	TGraph * getGraph() { return g_; };
+	
 private:
 	bool capped_;
 	double xmin_, valmin_, xmax_, valmax_;
@@ -230,8 +236,80 @@ public:
 // ------------------------------------------------------------------------------------------------
 TH1 * integrate1D(TH1 * h, bool normalize=true);
 TH2 * integrate2D(TH2 * h, bool normalize=true);
-HistoConverter * cdfInv(TH1 * h, double min, double max);
-HistoConverter * cdf(TH1 * h, double min, double max);
+
+// ------------------------------------------------------------------------------------------------
+template<class T=LinGraphToTF1>
+HistoConverter * cdfInv(TH1 * h,double min, double max)
+{
+	TH1 * hi = integrate1D(h);
+	TGraph g(hi);
+	TGraph ginv;
+	double last = 1.;
+	int ilast = 0;
+	double px = g.GetX()[0];
+	double py = g.GetY()[0];
+	for(int ip=0; ip<g.GetN(); ++ip) {
+		double x = g.GetX()[ip];
+		double y = g.GetY()[ip];
+		/// std::cout << x << " " << y << std::endl;
+		int jp = ginv.GetN();
+		if( y != py ) {
+			ginv.SetPoint(jp,1.-py,px);	
+			if( ip == g.GetN() - 1 ) {
+				ginv.SetPoint(jp+1,1.-y,x);
+			}
+		}
+		py = y; px = x;
+		if( y < last ) { 
+			last = y;
+			ilast = ip;
+			if( ilast == 0 && ip > 1 ) {
+				min = x;
+			}
+		}
+	}
+	/// ginv.Print("all");
+	max = g.GetX()[ilast];
+	
+	HistoConverter * invg = new T(Form("%s_inv",hi->GetName()), &ginv, 0., min, 1., max );
+	/// std::cout << min << " " << max << " " << invg->eval(max) << " " << invg->eval(g.GetX()[g.GetN()-1]) << " " << invg->eval(1.) << std::endl;
+	delete hi;
+	return invg;
+}
+
+// ------------------------------------------------------------------------------------------------
+template<class T=LinGraphToTF1>
+HistoConverter * cdf(TH1 * h,double min, double max)
+{
+	TH1 * hi = integrate1D(h);
+	TGraph g(hi);
+	TGraph ginv(g.GetN());
+	double last = 1.;
+	int ilast = 0;
+	for(int ip=0; ip<g.GetN(); ++ip) {
+		double x = g.GetX()[ip];
+		double y = g.GetY()[ip];
+		if( y < last ) { 
+			last = y;
+			ilast = ip;
+			if( ilast == 0 && ip > 1 ) {
+				min = x;
+			}
+		}
+		ginv.SetPoint(ip,x,1.-y);
+	}
+	max = g.GetX()[ilast];
+	
+
+	HistoConverter * invg = new T(Form("%s_dir",hi->GetName()), &ginv, min, 0., max, 1. );
+	/// std::cout << min << " " << max << " " << invg->eval(1.-last) << " " << g.GetY()[g.GetN()-1] << " " << invg->eval(g.GetY()[g.GetN()-1]) << " " << invg->eval(1.) << std::endl;
+	delete hi;
+	return invg;
+}
+
+//// 
+//// HistoConverter * cdfInv(TH1 * h, double min, double max);
+//// HistoConverter * cdf(TH1 * h, double min, double max);
 
 
 // -----------------------------------------------------------------------------------------------
@@ -239,7 +317,7 @@ class IntegrationNode
 {
 public:
 	IntegrationNode(int id, std::vector<double> coord, double w) : 
-		id_(id), coord_(coord), weight_(w), sum_(weight_), hasSum_(false)
+		id_(id), coord_(coord), weight_(w), sum_(weight_), hasSum_(false), linked_(false)
 		{};
 	
 	class weakLess {
@@ -278,6 +356,8 @@ public:
 	};
 	
 	void fill(double w) { weight_+=w; sum_+=w; };
+	bool isLinked() { return linked_; }
+	void linked(bool x=true) { linked_=x; }
 	
 	void print(std::ostream & out) const {
 		out << "IntegrationNode " << id_ << " " << weight_;
@@ -318,7 +398,7 @@ private:
 	std::vector<double> coord_;
 	double weight_;
 	double sum_;
-	bool hasSum_;
+	bool hasSum_, linked_;
 	
 	std::list<IntegrationNode *> children_;
 	
@@ -345,6 +425,7 @@ public:
 				}
 				++jt;
 			}
+			(*it)->linked(true);						
 		}
 	};
 	
@@ -412,16 +493,17 @@ protected:
 		iterator inode = lower_bound(&tmp);
 		if( inode == end() || key_comp()(**inode,tmp) || key_comp()(tmp,**inode) ) {
 			inode = insert( inode, new IntegrationNode(size(),volume,0.) );
+		}
+		if( link && ! (*inode)->isLinked() ) { 
 			iterator jnode = inode;
 			++jnode;
-			if( link ) { 
-				while( jnode != end() ) { 
-					if( IntegrationNode::strictLess()(**inode,**jnode) ) {
-						(*inode)->addChild(*jnode);
-					}
-					++jnode;
+			while( jnode != end() ) { 
+				if( IntegrationNode::strictLess()(**inode,**jnode) ) {
+					(*inode)->addChild(*jnode);
 				}
+				++jnode;
 			}
+			(*inode)->linked(true);
 		}
 		//// (*inode)->print(std::cout);
 		return *inode;
@@ -480,6 +562,58 @@ private:
 
 };
 
+
+class DecorrTransform : public HistoConverter
+{
+public:
+	DecorrTransform(TH2 * histo, float ref,bool doRatio=false);
+	
+	virtual double operator() (double *x, double *p);
+	virtual HistoConverter * clone() const;
+	
+	unsigned int NDim() const { return 2; };
+	
+	TF1 * getCdf(double x) { return ((GraphToTF1*)getConverter(x))->asTF1(Form("%s_%1.0f", hist_->GetName(), 100.*x )); };
+	TF1 * invTransform() { return ((GraphToTF1*)invtr_)->asTF1(Form("%s_inv", hist_->GetName())); };
+	
+	HistoConverter * getInvConverter() { return invtr_; };
+	HistoConverter * getConverter(double x) { 
+		int ibin = hist_->GetXaxis()->FindBin(x);
+		return dirtr_[ibin];
+	};
+	
+	double xmin() { return hist_->GetXaxis()->GetXmin(); };
+	double xmax() { return hist_->GetXaxis()->GetXmax(); };
+	double ymin() { return hist_->GetYaxis()->GetXmin(); };
+	double ymax() { return hist_->GetYaxis()->GetXmax(); };
+	
+private:
+	TH2 * hist_;
+	int refbin_;
+	double doRatio_;
+	
+	HistoConverter * invtr_;
+	std::vector<HistoConverter *> dirtr_;
+	
+};
+
+class WrapDecorr : public HistoConverter
+{
+public:
+	WrapDecorr(DecorrTransform *tr);
+	
+	virtual double operator() (double *x, double *p);
+	virtual HistoConverter * clone() const;
+	
+	unsigned int NDim() const { return 1; };
+
+	TF1 * asTF1(TString name) { return new TF1(name,this,tr_->ymin(),tr_->ymax(),1); };
+	
+	virtual ~WrapDecorr();
+private:
+	DecorrTransform * tr_;
+
+};
 
 #endif 
 

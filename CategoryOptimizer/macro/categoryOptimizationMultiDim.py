@@ -9,6 +9,7 @@ json.encoder.FLOAT_REPR = lambda o: format(o, '.3f')
 
 from optparse import OptionParser, make_option
 from  pprint import pprint
+from copy import deepcopy as copy
 
 objs = []
 
@@ -25,7 +26,7 @@ def loadSettings(cfgs,dest,macros):
             setattr(dest,k,v)
         cf.close()
 
-def getBoundaries(ndim,ncat,optimizer, summary):
+def getBoundaries(ndim,ncat,optimizer, summary, overwrite=False):
     print ndim, ncat
     boundaries = numpy.array([0. for i in range(ndim*(ncat+1)) ],dtype='d')
     selections = numpy.array([0. for i in range(optimizer.nOrthoCuts()) ],dtype='d')
@@ -35,17 +36,16 @@ def getBoundaries(ndim,ncat,optimizer, summary):
     else:
         tmp = numpy.array([0.],dtype='d')
         z = optimizer.getBoundaries(ncat,boundaries,tmp)
-    if not ncat in summary or summary[ncat]["fom"] < z: 
+    if overwrite or not ncat in summary or float(summary[ncat]["fom"]) > z: 
         summary[ncat] =  { "fom" : z, "boundaries" : list(boundaries), "ncat": ncat }
         if len(selections) > 0: 
             summary[ncat]["selections"]=list(selections)
     objs.append((boundaries,selections))
 
 # -----------------------------------------------------------------------------------------------------------
-def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
+def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0,settings=None):
     
     summary = {}
-    print readBack
     if readBack:
         try:
             sin = open("%s/cat_opt.json" % options.cont,"r")
@@ -56,23 +56,29 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
                 for ncat,val in summary.iteritems():
                     if options.maxcat and int(ncat) > options.maxcat or options.mincat and int(ncat) < options.mincat:
                         continue
-                    tmp[ncat] = val
+                    tmp[int(ncat)] = val
                 summary = tmp
-        except:
+        except Exception as e:
+            print "Error reading back last step results:\n", e
             summary = {}
             
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "Fitting"
     print 
     for iter in rng:
-        optimizer.optimizeNCat(iter,*args)
-        getBoundaries(ndim,iter, optimizer, summary )
+        if iter in summary:
+            boundaries = numpy.array([float(b) for b in summary[iter]["boundaries"]])
+            aargs = args+(boundaries,)
+            optimizer.optimizeNCat(iter,*aargs)
+        else:
+            optimizer.optimizeNCat(iter,*args)
+        getBoundaries(ndim,iter, optimizer, summary, True )
 
     for ncat,val in summary.iteritems():
         printBoundaries(ndim,val["boundaries"],val["fom"],val.get("selections",None))
         
     if reduce:
-        print "---------------------------------------------"
+        print "\n---------------------------------------------"
         print "Reducing"
         print 
         maxncat = 0
@@ -91,7 +97,7 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
             getBoundaries(ndim,iter, optimizer, summary )
 
     if refit > 0:
-        print "---------------------------------------------"
+        print "\n---------------------------------------------"
         print "Refitting"
         print
         for irefit in range(refit):
@@ -101,10 +107,11 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
                     if "selections" in val:
                         for isel in range(len(val["selections"])):
                             optimizer.setOrthoCut(isel, float(val["selections"][isel]))
-                print ncat,val,boundaries
                 ncat=int(ncat)
                 ## setSelections(optimizer,summary)
                 eargs = [a for a in args]
+                if options.dryrefit:
+                    eargs[1] = True
                 eargs.append(boundaries)
                 rng.append(ncat)
                 optimizer.optimizeNCat(ncat,*eargs)
@@ -119,13 +126,19 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
 
     sout = open("cat_opt.json","w+")
     sout.write( json.dumps(summary,sort_keys=True, indent=4) )
-
+    sout.close()
+    
+    if settings:
+        sout = open("setup.json","w+")
+        sout.write( json.dumps(settings,sort_keys=True, indent=4) )
+        sout.close()
+        
     return summary
 
 # -----------------------------------------------------------------------------------------------------------
 def printBoundaries(ndim,boundaries, maxval,selections):
     
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "ncat: ", len(boundaries)/ndim-1
     print "max: %1.5f" % ( maxval )
     print "boundaries: ",
@@ -145,22 +158,41 @@ alltrees = []
 # -----------------------------------------------------------------------------------------------------------
 def mergeTrees(tfile,sel,outname,trees,aliases):
     tlist = ROOT.TList()
-    for name,selection in trees:
-        tree=tfile.Get(name)
-        print "Reading tree %s" % name, selection, sel
-        if sel != "":
-            selection = str(ROOT.TCut(selection)*ROOT.TCut(sel))
-        if selection != "":
-            clone = tree.CopyTree(selection)
-            tree = clone
-        tlist.Add(tree)
-    out=ROOT.TTree.MergeTrees(tlist)
+    print
+    print "Reading trees for sample ", outname
+    tryread = tfile.Get(outname)
+    if tryread != None:
+        print "Tree found in input file ", outname, tryread
+        out = tryread.CopyTree("")
+    else:
+        for name,selection in trees:
+            tree=tfile.Get(name)
+            for aname, definition in aliases:
+                tree.SetAlias( aname,definition )
+            print "%s '%s' '%s'" % (name, selection, sel)
+            if sel != "":
+                selection = str(ROOT.TCut(selection)*ROOT.TCut(sel))
+            if selection != "":
+                clone = tree.CopyTree(selection)
+                tree = clone
+            tlist.Add(tree)
+        out=ROOT.TTree.MergeTrees(tlist)
+        
     out.SetName(outname)
     for name, definition in aliases:
         out.SetAlias( name,definition )
+    
     return out
 
 objs = []
+
+def defineAliases(inp):
+    ret = []
+    for name in inp:
+        name, definition = [ tok.lstrip(" ").rstrip(" ") for tok in name.split(":=") if tok != "" ]
+        ret.append( (name,definition) )
+    return ret
+
 
 # -----------------------------------------------------------------------------------------------------------
 def defineVariables(variables,label):
@@ -175,14 +207,17 @@ def defineVariables(variables,label):
             aliases.append( (name,definition) )
         xmin,xmax,nbins = var[1]
         default = xmin
-        if len(var) == 3:
+        if len(var) >= 3:
             default = float(var[2])
         if type(nbins) == float:
             nbins = int( (xmax-xmin)/nbins )
-        var = ROOT.RooRealVar(name,name,default,xmin,xmax)
-        var.setBins(nbins)
-        objs.append(var)
-        arglist.add( var )
+        rvar = ROOT.RooRealVar(name,name,default,xmin,xmax)
+        rvar.setBins(nbins)
+        if len(var) >= 4:
+            nmin,nmax = var[3]
+            rvar.setBinning(ROOT.RooUniformBinning(nmin,nmax,int((nmax-nmin)/(xmax-xmin)*nbins)),"normRng")
+        objs.append(rvar)
+        arglist.add( rvar )
 
     return arglist,aliases
         
@@ -193,11 +228,11 @@ def modelBuilders(trees, type, obs, varlist, sellist, weights, shapes, minevents
     for tree in trees:
         name = tree.GetName()
         modelName = "%sModel" % name
-        weight = "weight"
-        if name in weights:
-            weight = weights[name]
-        tree.SetAlias("_weight",weight)
-        modelBuilder = ROOT.SecondOrderModelBuilder(type, modelName, obs, tree, varlist, sellist, weight)
+        ### weight = "weight"
+        ### if name in weights:
+        ###     weight = weights[name]
+        ### tree.SetAlias("_weight",weight)
+        modelBuilder = ROOT.SecondOrderModelBuilder(type, modelName, obs, tree, varlist, sellist, "_weight")
         if name in shapes:
             modelBuilder.getModel().setShape( getattr(ROOT.SecondOrderModel,shapes[name]) )
         if name in minevents:
@@ -231,7 +266,7 @@ def optimizeMultiDim(options,args):
 
     signals = options.signals
     backgrounds = options.backgrounds
-
+    
     variables = options.variables
     observable = options.observable
     selection = options.selection
@@ -243,15 +278,54 @@ def optimizeMultiDim(options,args):
     ws = None
 
     cutoffs = numpy.array([cutoff]*ndim)
+
+    aliases = defineAliases( getattr(options,"aliases",[]) )
     
     obs,obsalias = defineVariables( [observable], options.label )
     obs = obs[0]
     mu = ROOT.RooRealVar("mu","mu",1.,0.,10.)
     
-    varlist,aliases = defineVariables( variables, options.label )
+    varlist,varaliases = defineVariables( variables, options.label )
     sellist,selaliases = defineVariables( selectioncuts, options.label )
 
-    print "---------------------------------------------"
+    subcats = getattr(options,"subcategories",None)
+    weights = getattr(options,"weights",{})
+    if subcats:
+        siglist = []
+        bkglist = []
+        nsubcats = len(subcats)
+        for sampname,trees in signals.iteritems():
+            for catname,cut in subcats:
+                newname = "%s_%s" % ( sampname, catname )
+                newtrees = copy(trees)
+                for t in newtrees:
+                    sel = t[1]
+                    if sel != "":
+                        sel = "(%s) &&" % sel
+                    sel += "(%s)" % cut
+                    t[1] = sel
+                siglist.append( (newname, newtrees) )
+                if sampname in weights:
+                    weights[newname] = weights[sampname]
+        for sampname,trees in backgrounds.iteritems():
+            for catname,cut in subcats:
+                newname = "%s_%s" % ( sampname, catname )
+                newtrees = copy(trees)
+                for t in newtrees:
+                    sel = t[1]
+                    if sel != "":
+                        sel = "(%s) &&" % sel
+                    sel += "(%s)" % cut
+                    t[1] = sel
+                bkglist.append( (newname, newtrees) )
+                if sampname in weights:
+                    weights[newname] = weights[sampname]
+    else:
+        siglist = [ (name,trees) for name,trees in signals.iteritems() ]
+        bkglist = [ (name,trees) for name,trees in backgrounds.iteritems() ]
+        nsubcats = 1
+        
+    print "\n---------------------------------------------"
     print "Observables "
     obs.Print("")
 
@@ -263,7 +337,7 @@ def optimizeMultiDim(options,args):
     print "Selection cuts"
     sellist.Print("V")
 
-    aliases.extend(obsalias+selaliases)
+    aliases.extend(obsalias+varaliases+selaliases)
     print
     print "Aliases"
     pprint(aliases)
@@ -286,9 +360,21 @@ def optimizeMultiDim(options,args):
 
     if not os.path.exists("/tmp/%s" % os.getlogin()):
         os.mkdir("/tmp/%s" % os.getlogin())
-    tmp = ROOT.TFile.Open("/tmp/%s/categoryOptimizationMultiDim_%s.root" % (os.getlogin(),options.label) ,"recreate")
+    if options.onlytrees:
+        tmp = ROOT.TFile.Open("/tmp/%s/categoryOptimizationMultiDim_trees_%s.root" % (os.getlogin(),options.label) ,"recreate")
+    else:
+        tmp = ROOT.TFile.Open("/tmp/%s/categoryOptimizationMultiDim_%s.root" % (os.getlogin(),options.label) ,"recreate")
     tmp.cd()
 
+
+    ## store some option in output json for reference
+    storeOpts = { "variables"  : [ varlist[jv].GetName() for jv in range(varlist.getSize()) ],
+                  "selections" : [ sellist[js].GetName() for js in range(sellist.getSize()) ],
+                  "file"       : tmp.GetName(),
+                  "observable" : [obs.GetName(),obs.getMin(),obs.getMax()],
+                  "subcategories" : subcats
+                 }
+    
     ### ##########################################################################################################
     ### Minimizer and optimizer
     ###
@@ -310,17 +396,20 @@ def optimizeMultiDim(options,args):
             name, args = opt
             getattr(optimizer,name)(*args)
 
+    for i in range(len(varlist)):
+        var = varlist[i]
+        optimizer.setDimName(i,var.GetName())
+    
     
     ### ##########################################################################################################
     ### Model builders
     ###
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "Reading inputs"
     print
-    sigTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in signals.iteritems() ]
-    bkgTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in backgrounds.iteritems() ]
+    sigTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in siglist ]
+    bkgTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in bkglist ]
 
-    weights = getattr(options,"weights",{})
     for tree in sigTrees+bkgTrees:
         name = tree.GetName()
         weight = "weight"
@@ -333,7 +422,7 @@ def optimizeMultiDim(options,args):
     if options.onlytrees:
         sys.exit(0)
     
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "Booking model buildes"
     print
     signals,sigconstr = modelBuilders( sigTrees, ROOT.AbsModel.sig, obs, varlist, sellist,
@@ -417,7 +506,7 @@ def optimizeMultiDim(options,args):
     ## fom       = ROOT.PoissonCutAndCountFomProvider()
 
     ### ### Likelihood ratio using asymptotic approx.
-    fom       = ROOT.SimpleShapeFomProvider()
+    fom       = ROOT.SimpleShapeFomProvider(nsubcats)
     for sigModel in signals:
         sigModel.getModel().setMu(mu)
     fom.addPOI(mu)
@@ -444,9 +533,10 @@ def optimizeMultiDim(options,args):
     for bkgModel in backgrounds:
         optimizer.addBackground( bkgModel )
     optimizer.setFigureOfMerit( fom )
-    
+
     summary = optmizeCats( optimizer, ws, varlist.getSize(),
-                           options.range, (cutoffs,options.dry,True,), options.cont, options.reduce, options.refit )
+                           options.range, (cutoffs,options.dry,True,), options.cont, options.reduce, options.refit,
+                           storeOpts )
     
     ### #########################################################################################################
     ### Some plots
@@ -470,6 +560,11 @@ def optimizeMultiDim(options,args):
         name = var.GetName()
         minX = var.getMin()
         maxX = var.getMax()
+        minNrm = minX
+        maxNrm = maxX
+        if var.hasBinning("normRng"):
+            minNrm = var.getMin("normRng")
+            maxNrm = var.getMax("normRng")
         nbinsX = var.getBinning().numBoundaries()-1
         hbound = ROOT.TH2F("hbound_%s" % name,"hbound_%s" % name,nbinsX+3,minX-1.5*(maxX-minX)/nbinsX,maxX+1.5*(maxX-minX)/nbinsX,ncat+3,mincat-1.5,maxcat+1.5)
         for jcat,val in summary.iteritems():
@@ -501,14 +596,18 @@ def optimizeMultiDim(options,args):
             pdf.Scale(1./pdf.Integral())
             pdf.SetLineColor(ROOT.kBlue)
             pdfs.append(pdf)
+            pdf.GetXaxis().SetRangeUser(minNrm,maxNrm)
             maxy = max(maxy,pdf.GetMaximum())
+            pdf.GetXaxis().SetRangeUser(minX,maxX)
             objs.append(pdf)
         for bkg in backgrounds:
             pdf = bkg.getPdf(idim)
             pdf.Scale(1./pdf.Integral())
             pdf.SetLineColor(ROOT.kRed)
             pdfs.append(pdf)
+            pdf.GetXaxis().SetRangeUser(minNrm,maxNrm)
             maxy = max(maxy,pdf.GetMaximum())
+            pdf.GetXaxis().SetRangeUser(minX,maxX)
             objs.append(pdf)
             
         ### hbound_pj.Scale(maxy*hbound_pj.GetMaximum())
@@ -537,6 +636,11 @@ def optimizeMultiDim(options,args):
         minX = var.getMin()
         maxX = var.getMax()
         nbinsX = var.getBinning().numBoundaries()-1
+        minNrm = minX
+        maxNrm = maxX
+        if var.hasBinning("normRng"):
+            minNrm = var.getMin("normRng")
+            maxNrm = var.getMax("normRng")
         print var, name, minX, maxX, nbinsX
         hsel = ROOT.TH2F("hsel_%s" % name,"hsel_%s" % name,nbinsX+3,minX-1.5*(maxX-minX)/nbinsX,maxX+1.5*(maxX-minX)/nbinsX,ncat+3,mincat-1.5,maxcat+1.5)
         for jcat,val in summary.iteritems():
@@ -565,19 +669,23 @@ def optimizeMultiDim(options,args):
             pdf.SetLineColor(ROOT.kBlue)
             pdf.Scale(1./pdf.Integral())
             pdfs.append(pdf)
+            pdf.GetXaxis().SetRangeUser(minNrm,maxNrm)
             maxy = max(maxy,pdf.GetMaximum())
+            pdf.GetXaxis().SetRangeUser(minX,maxX)
             objs.append(pdf)
         for bkg in backgrounds:
             pdf = bkg.getPdf(ndim+isel)
             pdf.Scale(1./pdf.Integral())
             pdf.SetLineColor(ROOT.kRed)
             pdfs.append(pdf)
+            pdf.GetXaxis().SetRangeUser(minNrm,maxNrm)
             maxy = max(maxy,pdf.GetMaximum())
+            pdf.GetXaxis().SetRangeUser(minX,maxX)
             objs.append(pdf)
             
         for pdf in pdfs:
             pdf.Scale( (ncat+1.5)/maxy/pdf.Integral() )
-            pdf.Draw("l same")
+            pdf.Draw("hist same")
         hsel_pj.GetYaxis().SetNdivisions(500+ncat+3)
         csel_pj.SetGridy()
         hsel_pj.Draw("box same")
@@ -669,7 +777,9 @@ if __name__ == "__main__":
             make_option("--settings",
                         action="store", dest="settings",
                         default=[],
-                        help="append string to optimizer setting",
+                        help="append string to optimizer settings"
+                        "\n   (ie the list of methods to be called after initialization"
+                        "\n    see the CategoryOptimizer class for details)",
                         ),
             make_option("-n", "--ncat",
                         action="append", dest="range", type="int",
@@ -682,9 +792,21 @@ if __name__ == "__main__":
                         help="do not run the optimization only find equidistant boundaries"
                         "\n  useful in conjunction with reduce and refit",
                         ),
+            make_option("-D", "--dryrefit",
+                        action="store_true", dest="dryrefit",
+                        default=False,
+                        help="do not run the optimization when refitting"
+                        "\n  useful to scan parameters around the miniumum"
+                        "\n   (achieved with CategoryOptimizer::setScan)",
+                        ),
+            make_option("-f", "--fix",
+                        action="append", dest="fix", type="string",
+                        default=[],
+                        help="Fix selection cut"
+                        ),
             make_option("-R", "--refit",
-                        action="store", dest="refit", type="int",
-                        default=0,
+                        action="store_true", dest="refit",
+                        default=False,
                         help="refit the best point after reduction"
                         ),
             make_option("-S", "--splitreduce",
@@ -738,9 +860,12 @@ if __name__ == "__main__":
         options.dry = True
         options.refit = 1
         options.reduce = True
-        
-    pprint(options.__dict__)
 
+    
+    print "\n---------------------------------------------"
+    print "Job options "
+    pprint(options.__dict__)
+    
     import ROOT
     print ROOT.gROOT.IsBatch()
     

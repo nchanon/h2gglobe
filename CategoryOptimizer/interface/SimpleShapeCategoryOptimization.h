@@ -148,7 +148,7 @@ public:
 		if( mean*mean - rms > 0. ) {
 			rms = sqrt( mean*mean - rms );
 		} else {
-			rms = 1.e-2*mean;
+			rms = 1.e-1*mean;
 			/// norm = 0.;
 			///// if( model_.getShape() == SecondOrderModel::gaus ) { 
 			///// 	ret = false;
@@ -156,7 +156,7 @@ public:
 			///// }
 		}
 		if( norm <= model_.minEvents()*1.02 ) { 
-			std::cout << " too few events  " << norm << " " << model_.minEvents() <<std::endl;
+			//// std::cout << " too few events  " << norm << " " << model_.minEvents() <<std::endl;
 			penalty_ = norm/model_.minEvents(); 
 			ret = false; 
 		}
