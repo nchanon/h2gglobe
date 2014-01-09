@@ -9,6 +9,7 @@ json.encoder.FLOAT_REPR = lambda o: format(o, '.3f')
 
 from optparse import OptionParser, make_option
 from  pprint import pprint
+from copy import deepcopy as copy
 
 objs = []
 
@@ -45,7 +46,6 @@ def getBoundaries(ndim,ncat,optimizer, summary):
 def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
     
     summary = {}
-    print readBack
     if readBack:
         try:
             sin = open("%s/cat_opt.json" % options.cont,"r")
@@ -61,7 +61,7 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
         except:
             summary = {}
             
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "Fitting"
     print 
     for iter in rng:
@@ -72,7 +72,7 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
         printBoundaries(ndim,val["boundaries"],val["fom"],val.get("selections",None))
         
     if reduce:
-        print "---------------------------------------------"
+        print "\n---------------------------------------------"
         print "Reducing"
         print 
         maxncat = 0
@@ -91,7 +91,7 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
             getBoundaries(ndim,iter, optimizer, summary )
 
     if refit > 0:
-        print "---------------------------------------------"
+        print "\n---------------------------------------------"
         print "Refitting"
         print
         for irefit in range(refit):
@@ -101,7 +101,6 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
                     if "selections" in val:
                         for isel in range(len(val["selections"])):
                             optimizer.setOrthoCut(isel, float(val["selections"][isel]))
-                print ncat,val,boundaries
                 ncat=int(ncat)
                 ## setSelections(optimizer,summary)
                 eargs = [a for a in args]
@@ -125,7 +124,7 @@ def optmizeCats(optimizer,ws,ndim,rng,args,readBack=False,reduce=False,refit=0):
 # -----------------------------------------------------------------------------------------------------------
 def printBoundaries(ndim,boundaries, maxval,selections):
     
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "ncat: ", len(boundaries)/ndim-1
     print "max: %1.5f" % ( maxval )
     print "boundaries: ",
@@ -145,9 +144,11 @@ alltrees = []
 # -----------------------------------------------------------------------------------------------------------
 def mergeTrees(tfile,sel,outname,trees,aliases):
     tlist = ROOT.TList()
+    print
+    print "Reading trees for sample ", outname
     for name,selection in trees:
         tree=tfile.Get(name)
-        print "Reading tree %s" % name, selection, sel
+        print "%s '%s' '%s'" % (name, selection, sel)
         if sel != "":
             selection = str(ROOT.TCut(selection)*ROOT.TCut(sel))
         if selection != "":
@@ -193,11 +194,11 @@ def modelBuilders(trees, type, obs, varlist, sellist, weights, shapes, minevents
     for tree in trees:
         name = tree.GetName()
         modelName = "%sModel" % name
-        weight = "weight"
-        if name in weights:
-            weight = weights[name]
-        tree.SetAlias("_weight",weight)
-        modelBuilder = ROOT.SecondOrderModelBuilder(type, modelName, obs, tree, varlist, sellist, weight)
+        ### weight = "weight"
+        ### if name in weights:
+        ###     weight = weights[name]
+        ### tree.SetAlias("_weight",weight)
+        modelBuilder = ROOT.SecondOrderModelBuilder(type, modelName, obs, tree, varlist, sellist, "_weight")
         if name in shapes:
             modelBuilder.getModel().setShape( getattr(ROOT.SecondOrderModel,shapes[name]) )
         if name in minevents:
@@ -231,7 +232,7 @@ def optimizeMultiDim(options,args):
 
     signals = options.signals
     backgrounds = options.backgrounds
-
+    
     variables = options.variables
     observable = options.observable
     selection = options.selection
@@ -251,7 +252,44 @@ def optimizeMultiDim(options,args):
     varlist,aliases = defineVariables( variables, options.label )
     sellist,selaliases = defineVariables( selectioncuts, options.label )
 
-    print "---------------------------------------------"
+    subcats = getattr(options,"subcategories",None)
+    weights = getattr(options,"weights",{})
+    if subcats:
+        siglist = []
+        bkglist = []
+        nsubcats = len(subcats)
+        for sampname,trees in signals.iteritems():
+            for catname,cut in subcats:
+                newname = "%s_%s" % ( sampname, catname )
+                newtrees = copy(trees)
+                for t in newtrees:
+                    sel = t[1]
+                    if sel != "":
+                        sel = "(%s) &&" % sel
+                    sel += "(%s)" % cut
+                    t[1] = sel
+                siglist.append( (newname, newtrees) )
+                if sampname in weights:
+                    weights[newname] = weights[sampname]
+        for sampname,trees in backgrounds.iteritems():
+            for catname,cut in subcats:
+                newname = "%s_%s" % ( sampname, catname )
+                newtrees = copy(trees)
+                for t in newtrees:
+                    sel = t[1]
+                    if sel != "":
+                        sel = "(%s) &&" % sel
+                    sel += "(%s)" % cut
+                    t[1] = sel
+                bkglist.append( (newname, newtrees) )
+                if sampname in weights:
+                    weights[newname] = weights[sampname]
+    else:
+        siglist = [ (name,trees) for name,trees in signals.iteritems() ]
+        bkglist = [ (name,trees) for name,trees in signals.iteritems() ]
+        nsubcats = 1
+        
+    print "\n---------------------------------------------"
     print "Observables "
     obs.Print("")
 
@@ -310,17 +348,20 @@ def optimizeMultiDim(options,args):
             name, args = opt
             getattr(optimizer,name)(*args)
 
+    for i in range(len(varlist)):
+        var = varlist[i]
+        optimizer.setDimName(i,var.GetName())
+    
     
     ### ##########################################################################################################
     ### Model builders
     ###
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "Reading inputs"
     print
-    sigTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in signals.iteritems() ]
-    bkgTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in backgrounds.iteritems() ]
+    sigTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in siglist ]
+    bkgTrees = [ mergeTrees(fin,selection,name,trees,aliases) for name,trees in bkglist ]
 
-    weights = getattr(options,"weights",{})
     for tree in sigTrees+bkgTrees:
         name = tree.GetName()
         weight = "weight"
@@ -333,7 +374,7 @@ def optimizeMultiDim(options,args):
     if options.onlytrees:
         sys.exit(0)
     
-    print "---------------------------------------------"
+    print "\n---------------------------------------------"
     print "Booking model buildes"
     print
     signals,sigconstr = modelBuilders( sigTrees, ROOT.AbsModel.sig, obs, varlist, sellist,
@@ -417,7 +458,7 @@ def optimizeMultiDim(options,args):
     ## fom       = ROOT.PoissonCutAndCountFomProvider()
 
     ### ### Likelihood ratio using asymptotic approx.
-    fom       = ROOT.SimpleShapeFomProvider()
+    fom       = ROOT.SimpleShapeFomProvider(nsubcats)
     for sigModel in signals:
         sigModel.getModel().setMu(mu)
     fom.addPOI(mu)
@@ -444,6 +485,7 @@ def optimizeMultiDim(options,args):
     for bkgModel in backgrounds:
         optimizer.addBackground( bkgModel )
     optimizer.setFigureOfMerit( fom )
+
     
     summary = optmizeCats( optimizer, ws, varlist.getSize(),
                            options.range, (cutoffs,options.dry,True,), options.cont, options.reduce, options.refit )
@@ -738,9 +780,12 @@ if __name__ == "__main__":
         options.dry = True
         options.refit = 1
         options.reduce = True
-        
-    pprint(options.__dict__)
 
+    
+    print "\n---------------------------------------------"
+    print "Job options "
+    pprint(options.__dict__)
+    
     import ROOT
     print ROOT.gROOT.IsBatch()
     

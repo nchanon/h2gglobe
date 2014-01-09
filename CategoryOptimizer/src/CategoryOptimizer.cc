@@ -196,7 +196,7 @@ double CategoryOptimizer::optimizeNCat(int ncat, const double * cutoffs, bool dr
 	for(int idim=0; idim<ndim; ++idim) {
 		if( build ) {
 			TH1 * transformPdf = transformModels_[0]->getPdf(idim);
-			transformPdf->Print();
+			/// transformPdf->Print();
 			for(size_t imod=1; imod<transformModels_.size(); ++imod) {
 				TH1 * itransformPdf = transformModels_[imod]->getPdf(idim);
 				transformPdf->Add(itransformPdf);
@@ -206,7 +206,7 @@ double CategoryOptimizer::optimizeNCat(int ncat, const double * cutoffs, bool dr
 			/// transformPdf->Print("all");
 			float max = transformPdf->GetMaximum();
 			if( max > tmpcutoffs[idim] ) { 
-				std::cout << "Moving cutofff for dimension " << idim << " " 
+				std::cout << "Moving cutofff for dimension " << idim << " (" << dimnames_[idim] << ")" 
 					  << tmpcutoffs[idim] << " -> " << max << std::endl;
 				tmpcutoffs[idim] = max;
 			}
@@ -227,8 +227,10 @@ double CategoryOptimizer::optimizeNCat(int ncat, const double * cutoffs, bool dr
 		/// 				 conv->eval(0.5-0.5*cutoffs[idim]) );
 		/// }
 	}
-	std::cout << "number of dimensions " << ndim << " " << ndim_ << " " << orthocuts_.size() << " " << tranformOrtho_ << " " 
-		  << transformations_.size() << std::endl;
+	std::cout << "\n Number of dimensions for categorization:  " << ndim_ 
+		  << "\n Number of dimensions for event selection: " << orthocuts_.size() 
+		  << "\n Number of variables transformations:      " << transformations_.size() 
+		  << std::endl;
 	
 	
 	// Book the FOM
@@ -251,9 +253,9 @@ double CategoryOptimizer::optimizeNCat(int ncat, const double * cutoffs, bool dr
 			min = 0.; max = 1.;
 		}
 		double first = max;
-		if( ! floatFirst_ ) {
-			max -= tmpcutoffs[idim];
-		}
+		//// if( ! floatFirst_ ) {
+		//// 	max -= tmpcutoffs[idim];
+		//// }
 		double range = (max - min);
 		if( ival ) {
 			bestFit.push_back(inv_transformations_[idim]->eval(*ival)); ++ival;
@@ -297,22 +299,27 @@ double CategoryOptimizer::optimizeNCat(int ncat, const double * cutoffs, bool dr
 				if( ival ) {
 					bestFit.push_back(inv_transformations_[idim]->eval(*ival)); ++ival;
 				} else { 
-					bestFit.push_back(first - (double)(ibound)*range/(double)ncat + tmpcutoffs[idim]);
+					bestFit.push_back(first - ((double)ibound)*range/(double)ncat); //  + tmpcutoffs[idim]);
 				}
-				minimizer_->SetLimitedVariable(bestFit.size()-1,
-							       Form( "%sBound%d",dimname.Data(), ibound ), 
-							       bestFit.back(),
-							       range, // tmpcutoffs[idim]*speed_, 
-							       min, max );
-				if( scan_ > 0 && scanBoundaries_ ) { 
-					if(ival) { 
-						paramsToScan.push_back(
-							std::make_pair(bestFit.size()-1,
-								       std::make_pair(inv_transformations_[idim]->eval(*ival),
-										      bestFit[bestFit.size()-2])));
-					} else {
-						paramsToScan.push_back(std::make_pair(bestFit.size()-1,std::make_pair(min,max)));
+				if( ibound != nbound - 1 || floatLast_ ) {
+					minimizer_->SetLimitedVariable(bestFit.size()-1,
+								       Form( "%sBound%d",dimname.Data(), ibound ), 
+								       bestFit.back(),
+								       range, // tmpcutoffs[idim]*speed_, 
+								       min, max );
+					if( scan_ > 0 && scanBoundaries_ ) { 
+						if(ival) { 
+							paramsToScan.push_back(
+								std::make_pair(bestFit.size()-1,
+									       std::make_pair(inv_transformations_[idim]->eval(*ival),
+											      bestFit[bestFit.size()-2])));
+						} else {
+							paramsToScan.push_back(std::make_pair(bestFit.size()-1,std::make_pair(min,max)));
+						}
 					}
+				} else {
+					minimizer_->SetFixedVariable(bestFit.size()-1, Form("%sBound%d",dimname.Data(),ibound),
+								     bestFit.back());
 				}
 			}
 		}
@@ -555,7 +562,7 @@ double CategoryOptimizer::getBoundaries(int ncat, double * boundaries, double * 
 	for(int idim=0; idim<ndim_; ++idim) {
 		for(int ibound=0; ibound<nbound; ++ibound) {
 			if( !transformations_.empty() && transformations_[idim]!=0 ) {
-				std::cout << boundaries[idim*nbound+ibound] << " -> ";
+				std::cout << "dim: " << idim << " bound: " << ibound << " internal rep: " << boundaries[idim*nbound+ibound] << " external rep: ";
 				boundaries[idim*nbound+ibound] = transformations_[idim]->eval(boundaries[idim*nbound+ibound]);
 				double invb = inv_transformations_[idim]->eval(boundaries[idim*nbound+ibound]);
 				std::cout << "(" << invb << ")";
