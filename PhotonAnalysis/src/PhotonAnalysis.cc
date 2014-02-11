@@ -4331,6 +4331,74 @@ bool PhotonAnalysis::FillDijetVariables(int & ijet1, int & ijet2, LoopAll& l, in
     return filled;
 }
 
+int PhotonAnalysis::computeJetVariablesForDifferentialAnalysis(int & ijet1, int & ijet2, LoopAll& l, int diphoton_id, float* smeared_pho_energy,     bool * jetid_flags, bool getAngles, double JetPtForDiffAnalysis){
+
+    int Njets = 0;
+    
+    if(diphoton_id==-1) return -1;
+
+    static std::vector<unsigned char> id_flags;
+
+    //if( jetid_flags == 0 ) {
+    if(PADEBUG) std::cout<<"FillDijetVariable -- no id flags, re-making"<<std::endl;
+    switchJetIdVertex( l, l.dipho_vtxind[diphoton_id] );
+    id_flags.resize(l.jet_algoPF1_n);
+    for(int ijet=0; ijet<l.jet_algoPF1_n; ++ijet ) {
+        id_flags[ijet] = PileupJetIdentifier::passJetId(l.jet_algoPF1_cutbased_wp_level[ijet], PileupJetIdentifier::kLoose);
+        //cout << "PileupJetIdentifier ijet="<<ijet<<" id_flags[ijet]="<<id_flags[ijet]<<endl;   
+    }
+    jetid_flags = (bool*)&id_flags[0];
+
+    TLorentzVector lead_p4    = l.get_pho_p4( l.dipho_leadind[diphoton_id], l.dipho_vtxind[diphoton_id], &smeared_pho_energy[0]);
+    TLorentzVector sublead_p4 = l.get_pho_p4( l.dipho_subleadind[diphoton_id], l.dipho_vtxind[diphoton_id], &smeared_pho_energy[0]);
+
+    float dr2pho = 0.5; //max distance of jet to photon
+
+    ijet1 = -1;
+    ijet2 = -1;
+    double jptmax = 0;
+    double jptsecond = 0;
+    for (int i=0; i<l.jet_algoPF1_n; i++) {
+        cout << "i="<< i<< " jetid_flags[i]="<<jetid_flags[i]<<endl;
+        if (jetid_flags[i]==true){
+            TLorentzVector* myjet = (TLorentzVector*)l.jet_algoPF1_p4->At(i);
+            if (myjet->Pt()<JetPtForDiffAnalysis) continue;
+            if (fabs(myjet->Eta()) > 4.7) continue;
+            if(myjet->DeltaR(lead_p4) < dr2pho) continue;
+            if(myjet->DeltaR(sublead_p4) < dr2pho) continue;
+            cout << "JetPtForDiffAnalysis ijet="<<i<<" pt="<< myjet->Pt()<<" jetid_flags[i]="<<jetid_flags[i]<<endl;
+            Njets++;
+            if (myjet->Pt()>jptmax){
+                ijet2 = ijet1;
+                jptsecond = jptmax;
+                ijet1 = i;
+                jptmax = myjet->Pt();
+            }
+            if (myjet->Pt()>jptsecond && myjet->Pt()<jptmax){
+                ijet2 = i;
+                jptsecond = myjet->Pt();
+            }
+        }
+    }
+    
+    std::cout << "njet="<<Njets<<" ijet1="<<ijet1<<" ijet2="<<ijet2<<endl;
+    /*
+    if (jets.first!=-1 && jets.second!=-1){
+        ijet1 = jets.first;
+        ijet2 = jets.second;
+        TLorentzVector* jet1 = (TLorentzVector*)l.jet_algoPF1_p4->At(jets.first);
+        TLorentzVector* jet2 = (TLorentzVector*)l.jet_algoPF1_p4->At(jets.second);
+        if(jet1->Pt() < jet2->Pt())
+            std::swap(ijet1, ijet2);
+    }
+    if (jets.first==-1 || jets.second==-1){
+        if (jets.first==-1) std::swap(ijet1, ijet2);
+    }
+    */
+    return Njets;
+}
+
+
 bool PhotonAnalysis::VHhadronicTag2011(LoopAll& l, int& diphotonVHhad_id, float* smeared_pho_energy, bool *jetid_flags, bool mvaselection,bool vetodipho,bool kinonly){
     //francesco 
 
