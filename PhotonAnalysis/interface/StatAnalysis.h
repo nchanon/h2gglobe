@@ -130,8 +130,8 @@ class StatAnalysis : public PhotonAnalysis
     float sigmaMrv, sigmaMwv;
     int vbfIjet1, vbfIjet2;
 
-    void buildBkgModel(LoopAll& l, const std::string & postfix);
-    void bookSignalModel(LoopAll& l, int nBins);
+    virtual void buildBkgModel(LoopAll& l, const std::string & postfix);
+    virtual void bookSignalModel(LoopAll& l, int nBins);
 
     std::vector<float> smeared_pho_energy;
     std::vector<float> smeared_pho_r9;

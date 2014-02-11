@@ -55,6 +55,30 @@ FinalModelConstruction::FinalModelConstruction(RooRealVar *massVar, RooRealVar *
     RooSpline1D *xsSpline = graphToSpline(Form("fxs_%s_%dTeV",procs[i].c_str(),sqrts_),xsGraph);
     xsSplines.insert(pair<string,RooSpline1D*>(procs[i],xsSpline));
   }
+  
+ //Insert a crossSection Tot  = ggh + wh + zh + tth + vbf
+  {
+  string procsAll[5] = {"ggh","vbf","wh","zh","tth"};
+  string procTot="tot";
+  TGraph *xsGraphAll;
+  for( int i=0;i<5;i++){
+	  TGraph *xsGraph = norm->GetSigmaGraph(procs[i].c_str());
+	  if(i==0) xsGraphAll=xsGraph;
+	  else {//add y
+		  int nPoints=xsGraphAll->GetN();
+		  for(int iP=0;iP<nPoints;iP++)
+			  {
+				  double x,y;
+				xsGraphAll->GetPoint(iP,x,y);  
+				y+=xsGraph->Eval(x);
+				xsGraphAll->SetPoint(iP,x,y);
+			  }
+	  	}
+  	}
+   RooSpline1D *xsSpline = graphToSpline(Form("fxs_%s_%dTeV",procTot.c_str(),sqrts_),xsGraphAll);
+   xsSplines.insert(pair<string,RooSpline1D*>(procTot,xsSpline));
+  }		
+	  
 
   loadSignalSystematics(systematicsFileName);
 	if (verbosity_) printSignalSystematics();
@@ -808,7 +832,19 @@ void FinalModelConstruction::getNormalization(){
     double mh = double(allMH_[i]);
     RooDataSet *data = stdDatasets[mh];
     // calcu eA as sumEntries / totalxs * totalbr * intL
-    double effAcc = (data->sumEntries()/(intLumi->getVal()*norm->GetXsection(mh,proc_)*norm->GetBR(mh)));
+    
+    double effAcc;
+    if ( proc_.find("Bin")==string::npos ) 
+   	effAcc = (data->sumEntries()/(intLumi->getVal()*norm->GetXsection(mh,proc_)*norm->GetBR(mh)));
+    	else {
+		double xSec=0;
+	       		xSec+=norm->GetXsection(mh,"ggh");
+	       		xSec+=norm->GetXsection(mh,"vbf");
+	       		xSec+=norm->GetXsection(mh,"tth");
+	       		xSec+=norm->GetXsection(mh,"wh");
+	       		xSec+=norm->GetXsection(mh,"zh");
+		effAcc= (data->sumEntries()/(intLumi->getVal()* xSec * norm->GetBR(mh)));
+		}
     temp->SetPoint(i,mh,effAcc);
   }
   verbosity_ >=2 ?
@@ -817,7 +853,11 @@ void FinalModelConstruction::getNormalization(){
   ;
   TGraph *eaGraph = new TGraph(pol2);
   RooSpline1D *eaSpline = graphToSpline(Form("fea_%s_cat%d_%dTeV",proc_.c_str(),cat_,sqrts_),eaGraph);
-  RooSpline1D *xs = xsSplines[proc_];
+	
+  RooSpline1D *xs ;
+  	if(proc_.find("Bin") == string::npos)
+ 	 	xs=xsSplines[proc_];
+	else xs=xsSplines["tot"];
 	RooAbsReal *rateNuisTerm = getRateWithPhotonSyst(Form("rate_%s_cat%d_%dTeV",proc_.c_str(),cat_,sqrts_));
   
 	finalNorm = new RooFormulaVar(Form("%s_norm",finalPdf->GetName()),Form("%s_norm",finalPdf->GetName()),"@0*@1*@2*@3",RooArgList(*xs,*brSpline,*eaSpline,*rateNuisTerm));
