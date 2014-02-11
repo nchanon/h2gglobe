@@ -464,6 +464,7 @@ class PhotonAnalysis : public BaseAnalysis
     
     bool VBFTag2013(int & ijet1, int & ijet2, LoopAll& l, int& diphotonVBF_id, float* smeared_pho_energy=0, bool vetodipho=true, bool kinonly=true, bool mvaselection=true, float eventweight=1, float myweight=1);
     bool FillDijetVariables(int & ijet1, int & ijet2, LoopAll& l, int diphoton_id, float* smeared_pho_energy=0,bool* jetid_flag=0, bool getAngles=0);
+    int computeJetVariablesForDifferentialAnalysis(int & ijet1, int & ijet2, LoopAll& l, int diphoton_id, float* smeared_pho_energy,     bool * jetid_flags, bool getAngles, double JetPtForDiffAnalysis);
     // ICHEP2012
     bool VBFTag2012(int & ijet1, int & ijet2, LoopAll& l, int diphoton_id,
 		    float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool * jetid_flags=0);
