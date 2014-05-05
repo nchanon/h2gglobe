@@ -35,6 +35,9 @@ MassFactorizedMvaAnalysis::MassFactorizedMvaAnalysis()  :
     doCosThetaDependentInterferenceSmear=false;
     idMVASystSize = 0.01;
     photonIdMvaSmearer = 0;
+
+    doMvaForDifferentialAnalysis = false;
+    
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -249,7 +252,8 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
 
     std::sort(bdtCategoryBoundaries.begin(),bdtCategoryBoundaries.end(), std::greater<float>() );
     nInclusiveCategories_ = bdtCategoryBoundaries.size()-1;
-    
+    if (doMvaForDifferentialAnalysis) nInclusiveCategories_ = sigmaMoMCategoryBoundaries.size()-1;
+
     if (multiclassVbfSelection || combinedmvaVbfSelection) { 
         std::vector<int> vsize;
         vsize.push_back((int)multiclassVbfCatBoundaries0.size());
@@ -312,7 +316,8 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
     std::sort(mvaVbfCatBoundaries.begin(),mvaVbfCatBoundaries.end(), std::greater<float>() );
     
     nCategories_=(nInclusiveCategories_+nVBFCategories+nVHlepCategories+nVHmetCategories+nVHhadCategories+nVHhadBtagCategories+nTTHhadCategories+nTTHlepCategories);
-    
+    if (doDifferentialAnalysis) nCategories_*=nVarCategories;
+ 
     if (bdtTrainingPhilosophy == "UCSD") {
         l.rooContainer->SetNCategories(8);
     } else if (bdtTrainingPhilosophy == "MIT") {
@@ -700,7 +705,7 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
         // FIXME pass smeared R9
         // --> only need to check ptom cuts for this selection --> kinonly
-        diphoton_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtCut,subleadEtCut,phoidMvaCut,applyPtoverM, 
+        diphoton_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtCut,subleadEtCut,phoidMvaCutEB, phoidMvaCutEE,applyPtoverM, 
 						&smeared_pho_energy[0], vetodipho, kinonly, 
 						( doDiphoMvaUpFront ? bdtCategoryBoundaries.back() : -2. ) );
 
@@ -739,14 +744,14 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
             float myweight=1.;
             if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
             VHmuevent=MuonTag2012B(l, diphotonVHlep_id, mu_ind, muVtx, VHmuevent_cat, &smeared_pho_energy[0], 
-                                    lep_sync, true, phoidMvaCut, eventweight,  smeared_pho_weight, !isSyst);
+                                    lep_sync, true, phoidMvaCutEB,phoidMvaCutEE, eventweight,  smeared_pho_weight, !isSyst);
             
             //ZWithFakeGammaCS(l, &smeared_pho_energy[0]);
             //ElectronStudies2012B(l, &smeared_pho_energy[0], true,  phoidMvaCut, eventweight, myweight, jentry);
             
             int diphotonVH_ele_id=-1;
             VHelevent=ElectronTag2012B(l, diphotonVH_ele_id, el_ind, elVtx, VHelevent_cat, &smeared_pho_energy[0], 
-                                        lep_sync, true, phoidMvaCut, eventweight,  smeared_pho_weight, !isSyst);
+                                        lep_sync, true, phoidMvaCutEB,phoidMvaCutEE, eventweight,  smeared_pho_weight, !isSyst);
             
             // FIXME  need to un-flag events failing the diphoton mva cut.
             
@@ -759,14 +764,14 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 	          float eventweight = weight * genLevWeight;
 	          float myweight=1.;
 	          if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
-	          VHLepTag2013(l, diphotonVHlep_id, VHlep1event, VHlep2event, true, mu_ind, muVtx, VHmuevent_cat, el_ind, elVtx, VHelevent_cat, &smeared_pho_energy[0], phoidMvaCut, eventweight, smeared_pho_weight, isSyst, vetodipho, kinonly);
+	          VHLepTag2013(l, diphotonVHlep_id, VHlep1event, VHlep2event, true, mu_ind, muVtx, VHmuevent_cat, el_ind, elVtx, VHelevent_cat, &smeared_pho_energy[0], phoidMvaCutEB,phoidMvaCutEE, eventweight, smeared_pho_weight, isSyst, vetodipho, kinonly);
 	      }
 
         if(includeVHmet && !run7TeV4Xanalysis) {
 	    // FIXME: the isSyst switch is used to evaluate all the systematic uncertainties.
 	    //        Need a dedicated smearer to evaluated MET systematics.
             /// if(!isSyst) 
-	    VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCut, false); 
+	    VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCutEB,phoidMvaCutEE, false); 
             //// else  VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCut, true); 
         }
 
@@ -777,14 +782,14 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
         if(includeVBF) {   
             if (combinedmvaVbfSelection) {
-                diphotonVBF_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtVBFCut,subleadEtVBFCut,phoidMvaCut,applyPtoverM,  
+                diphotonVBF_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtVBFCut,subleadEtVBFCut,phoidMvaCutEB, phoidMvaCutEE,applyPtoverM,  
                                                             &smeared_pho_energy[0], vetodipho, kinonly );
                 float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonVBF_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonVBF_id]] * genLevWeight;
                 float myweight=1.;
                 if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
                 VBFevent = VBFTag2013(vbfIjet1, vbfIjet2, l, diphotonVBF_id, &smeared_pho_energy[0], vetodipho, kinonly, true, eventweight, myweight);
             } else {
-                diphotonVBF_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtVBFCut,subleadEtVBFCut,phoidMvaCut,applyPtoverM, 
+                diphotonVBF_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtVBFCut,subleadEtVBFCut,phoidMvaCutEB, phoidMvaCutEE,applyPtoverM, 
                                                             &smeared_pho_energy[0], vetodipho, kinonly );
                 float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonVBF_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonVBF_id]] * genLevWeight;
                 float myweight=1.;
@@ -927,10 +932,17 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
         }
 
         bool isEBEB  = fabs(lead_p4.Eta() < 1.4442 ) && fabs(sublead_p4.Eta()<1.4442);
+
         category = GetBDTBoundaryCategory(diphobdt_output,isEBEB,VBFevent);
+	if (doMvaForDifferentialAnalysis) category = GetSigmaMoMBoundaryCategory(sigmaMrv);
+	
         if (doDiphoMvaUpFront || diphobdt_output>=bdtCategoryBoundaries.back()) { 
             computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt(), Higgs.M(), diphobdt_output, true); 
         }
+
+	if (doDifferentialAnalysis && doMvaForDifferentialAnalysis) {
+	    computeDifferentialVariableCategory(l, category, lead_p4, sublead_p4, diphoton_id, &smeared_pho_energy[0]);
+	}
 
         if (fillOptTree) {
             std::string name;
@@ -946,9 +958,11 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
                     weight, mass, sigmaMrv, sigmaMwv, Higgs, diphobdt_output, category, VBFevent, 
                     myVBF_Mjj, myVBFLeadJPt, myVBFSubJPt, nVBFDijetJetCategories, isSyst, "no-syst");
             } else {
+		/*
                 fillOpTree(l, lead_p4, sublead_p4, vtxProb, diphoton_index, diphoton_id, phoid_mvaout_lead, phoid_mvaout_sublead, 
                     weight, mass, sigmaMrv, sigmaMwv, Higgs, diphobdt_output, category, VBFevent, 
                     myVBF_Mjj, myVBFLeadJPt, myVBFSubJPt, nVBFDijetJetCategories, isSyst, name);
+		*/
             }
         }
 
@@ -2326,6 +2340,15 @@ int MassFactorizedMvaAnalysis::GetBDTBoundaryCategory(float bdtout, bool isEB, b
     } else std::cerr << "No BDT Philosophy known - " << bdtTrainingPhilosophy << std::endl;
 }
 
+int MassFactorizedMvaAnalysis::GetSigmaMoMBoundaryCategory(float sigmaMrv){
+
+    int cat = categoryFromBoundaries( sigmaMoMCategoryBoundaries, sigmaMrv );
+    return cat;
+
+
+}
+
+
 void MassFactorizedMvaAnalysis::fillTrainTree(LoopAll &l, Int_t leadingPho, Int_t subleadingPho, Int_t vtx, float vtxProb, TLorentzVector &leadP4, TLorentzVector &subleadP4, float sigmaMrv, float sigmaMwv, float sigmaMeonly, const char* type, float photonID_1,float photonID_2){
     
     Float_t mva = 99.;
@@ -2369,7 +2392,13 @@ bool MassFactorizedMvaAnalysis::PreselDiphoFillDiphoMVA(LoopAll &l, float *pho_e
 
     l.tmva_dipho_MIT_cache.clear();
     for(int id=0; id<l.dipho_n; ++id ) {
-        float sumpt = l.DiphotonMITPreSelectionPerDipho(bdtTrainingType.c_str(), id, minleadpt, minsubleadpt, phoidMvaCut, applyPtoverM, &pho_energy_array[0], -1, 0, 0);
+        float sumpt = l.DiphotonMITPreSelectionPerDipho(bdtTrainingType.c_str(), id, minleadpt, minsubleadpt, phoidMvaCutEB, phoidMvaCutEE, applyPtoverM, &pho_energy_array[0], -1, 0, 0);
+
+	if (doMvaForDifferentialAnalysis) {
+	    float sumpt = l.DiphotonMITPreSelectionPerDipho(bdtTrainingType.c_str(), id, minleadpt, minsubleadpt, phoidMvaCutEB, phoidMvaCutEE, applyPtoverM, &pho_energy_array[0], -1, 0, 0);
+
+	}
+
         if(sumpt!=-99) {
             l.dipho_sel[id]=true;
             anypassing=true;

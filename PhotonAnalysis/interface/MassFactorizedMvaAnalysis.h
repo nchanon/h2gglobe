@@ -32,6 +32,7 @@ class MassFactorizedMvaAnalysis : public StatAnalysis
     void Term(LoopAll&);
    
     virtual int GetBDTBoundaryCategory(float,bool,bool);
+    virtual int GetSigmaMoMBoundaryCategory(float);
 
     virtual void ResetAnalysis();
     //// virtual void Analysis(LoopAll&, Int_t); 
@@ -55,6 +56,9 @@ class MassFactorizedMvaAnalysis : public StatAnalysis
     float GetDiphoMva(LoopAll & l, int diphotonId, bool smear=false, float syst_shift=0);
     void ComputeDiphoMvaInputs(LoopAll &l, float &phoid_mvaout_lead, float &phoid_mvaout_sublead, float &vtxProb, int diphoton_id);
 
+    bool doMvaForDifferentialAnalysis;
+    std::vector<float> sigmaMoMCategoryBoundaries;
+    
     bool doPhotonMvaIdSyst;
     float idMVASystSize;
     bool doPhotonMvaIdSmear;

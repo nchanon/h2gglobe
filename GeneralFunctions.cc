@@ -3112,9 +3112,9 @@ std::vector<int> LoopAll::DiphotonCiCSelectionForTaggedChannels( phoCiCIDLevel L
 }
 
 
-int LoopAll::DiphotonMITPreSelection(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array, bool vetodipho, bool kinonly, float dipho_BDT_Cut,int fixedvtx, bool split, std::vector<bool> veto_indices) {
+int LoopAll::DiphotonMITPreSelection(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCutEB,Float_t phoidMvaCutEE, bool applyPtoverM, float *pho_energy_array, bool vetodipho, bool kinonly, float dipho_BDT_Cut,int fixedvtx, bool split, std::vector<bool> veto_indices) {
 
-  std::vector<int> passing_dipho = DiphotonMITPreSelectionForTaggedChannels(type,leadPtMin,subleadPtMin,phoidMvaCut,applyPtoverM, 
+  std::vector<int> passing_dipho = DiphotonMITPreSelectionForTaggedChannels(type,leadPtMin,subleadPtMin,phoidMvaCutEB, phoidMvaCutEE, applyPtoverM, 
 									    pho_energy_array,vetodipho,kinonly,dipho_BDT_Cut,
 									    fixedvtx,split,veto_indices );
   if ( passing_dipho.empty() ) { return -1; }
@@ -3122,7 +3122,7 @@ int LoopAll::DiphotonMITPreSelection(const char * type, Float_t leadPtMin, Float
 }
 
 
-std::vector<int> LoopAll::DiphotonMITPreSelectionForTaggedChannels(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array, bool vetodipho, bool kinonly, float dipho_BDT_Cut,int fixedvtx, bool split, std::vector<bool> veto_indices) {
+std::vector<int> LoopAll::DiphotonMITPreSelectionForTaggedChannels(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCutEB, Float_t phoidMvaCutEE, bool applyPtoverM, float *pho_energy_array, bool vetodipho, bool kinonly, float dipho_BDT_Cut,int fixedvtx, bool split, std::vector<bool> veto_indices) {
 
     //rho=0;// CAUTION SETTING RHO TO 0 FOR 2010 DATA FILES (RHO ISN'T IN THESE FILES)
     int selected_lead_index = -1;
@@ -3142,7 +3142,7 @@ std::vector<int> LoopAll::DiphotonMITPreSelectionForTaggedChannels(const char * 
         if(vetodipho && dipho_sel[idipho]!=true) continue;
         if(dipho_BDT[idipho]<dipho_BDT_Cut) continue;
 
-        float sumpt = DiphotonMITPreSelectionPerDipho(type, idipho, leadPtMin, subleadPtMin, phoidMvaCut, applyPtoverM, pho_energy_array, fixedvtx, split, kinonly, veto_indices);
+        float sumpt = DiphotonMITPreSelectionPerDipho(type, idipho, leadPtMin, subleadPtMin, phoidMvaCutEB, phoidMvaCutEE, applyPtoverM, pho_energy_array, fixedvtx, split, kinonly, veto_indices);
 
         if(sumpt!=-99){
             passing_dipho.push_back(idipho);
@@ -3159,7 +3159,7 @@ std::vector<int> LoopAll::DiphotonMITPreSelectionForTaggedChannels(const char * 
     return passing_dipho;
 }
 
-float LoopAll::DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array, int fixedvtx, bool split, bool kinonly, std::vector<bool> veto_indices) {
+float LoopAll::DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCutEB, Float_t phoidMvaCutEE, bool applyPtoverM, float *pho_energy_array, int fixedvtx, bool split, bool kinonly, std::vector<bool> veto_indices) {
     
     int ivtx = (fixedvtx==-1) ? dipho_vtxind[idipho] : fixedvtx;
     int lead = dipho_leadind[idipho];
@@ -3218,9 +3218,18 @@ float LoopAll::DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Fl
     if (!kinonly) {
 	    /// std::cout << "Diphoton preselection " << dipho_leadind[idipho] << " " << dipho_subleadind[idipho] << " " 
 	    /// 	      << photonIDMVA(lead,ivtx,lead_p4,type) << " " << photonIDMVA(sublead,ivtx,sublead_p4,type) << std::endl;
-	if ( photonIDMVA(lead,ivtx,lead_p4,type) <= phoidMvaCut
-	     || photonIDMVA(sublead,ivtx,sublead_p4,type)  <= phoidMvaCut
-	    ) {return -99;}
+      
+      //if ( photonIDMVA(lead,ivtx,lead_p4,type) <= phoidMvaCut
+      //|| photonIDMVA(sublead,ivtx,sublead_p4,type)  <= phoidMvaCut
+      //) {return -99;}
+      
+      if ( (photonIDMVA(lead,ivtx,lead_p4,type) <= phoidMvaCutEB && leadEta < 1.4442)
+	   || (photonIDMVA(lead,ivtx,lead_p4,type) <= phoidMvaCutEE && leadEta > 1.566)
+	   || (photonIDMVA(sublead,ivtx,sublead_p4,type)  <= phoidMvaCutEB && subleadEta < 1.4442)
+	   || (photonIDMVA(sublead,ivtx,sublead_p4,type)  <= phoidMvaCutEE && subleadEta > 1.566)
+	   ) {return -99;}
+
+
     }
     
     return (leadpt+subleadpt);
@@ -4953,7 +4962,7 @@ void LoopAll::VHNewLeptonCategorization(bool & VHlep1event, bool & VHlep2event, 
   }
 }
 
-void LoopAll::VHTwoMuonsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & muVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCut, bool vetodipho, bool kinonly, const char * type,float deltaRcut){
+void LoopAll::VHTwoMuonsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & muVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCutEB, float phoidMvaCutEE, bool vetodipho, bool kinonly, const char * type,float deltaRcut){
 
   vector<int> muonIndecesVector = MuonSelection2013(10);
   int mu_ind_1= -1;
@@ -4968,7 +4977,7 @@ void LoopAll::VHTwoMuonsEvents(bool & VHlep1event, bool & VHlep2event, int & dip
       int diphotonVHlep_id_1 =  -1;
       std::vector<int> PhotonIndecesVector;
       if(mvaselection) {
-	PhotonIndecesVector = DiphotonMITPreSelectionForTaggedChannels(type,leadEtVHlepCut,subleadEtVHlepCut,phoidMvaCut,applyPtoverM, 
+	PhotonIndecesVector = DiphotonMITPreSelectionForTaggedChannels(type,leadEtVHlepCut,subleadEtVHlepCut,phoidMvaCutEB, phoidMvaCutEE,applyPtoverM, 
 								    &smeared_pho_energy[0], vetodipho, kinonly, diphobdt_output_Cut_VHLep, -1, false, veto_indices);
       } else {
 	PhotonIndecesVector = DiphotonCiCSelectionForTaggedChannels( phoSUPERTIGHT, phoSUPERTIGHT, leadEtVHlepCut,subleadEtVHlepCut, 4,
@@ -5013,7 +5022,7 @@ void LoopAll::VHTwoMuonsEvents(bool & VHlep1event, bool & VHlep2event, int & dip
   }
 }
 
-void LoopAll::VHTwoElectronsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & elVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCut, bool vetodipho, bool kinonly, const char * type, float deltaRcut){
+void LoopAll::VHTwoElectronsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & elVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCutEB, float phoidMvaCutEE, bool vetodipho, bool kinonly, const char * type, float deltaRcut){
 
   int el_ind_1=-1;
   std::vector<int> ElectronIndecesVector = ElectronSelectionMVA2013(10);
@@ -5029,7 +5038,7 @@ void LoopAll::VHTwoElectronsEvents(bool & VHlep1event, bool & VHlep2event, int &
       int diphotonVHlep_id_1 =  -1;
       std::vector<int> PhotonIndecesVector;
       if(mvaselection) {
-	PhotonIndecesVector = DiphotonMITPreSelectionForTaggedChannels(type,leadEtVHlepCut,subleadEtVHlepCut,phoidMvaCut,applyPtoverM, 
+	PhotonIndecesVector = DiphotonMITPreSelectionForTaggedChannels(type,leadEtVHlepCut,subleadEtVHlepCut,phoidMvaCutEB, phoidMvaCutEE,applyPtoverM, 
 								    &smeared_pho_energy[0], vetodipho, kinonly, diphobdt_output_Cut_VHLep, -1, false, veto_indices);
       } else {
 	PhotonIndecesVector = DiphotonCiCSelectionForTaggedChannels( phoSUPERTIGHT, phoSUPERTIGHT, leadEtVHlepCut,subleadEtVHlepCut, 4,

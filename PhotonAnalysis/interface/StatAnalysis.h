@@ -75,6 +75,14 @@ class StatAnalysis : public PhotonAnalysis
     double genCosTheta;
     double cosTheta;
 
+    bool doDifferentialAnalysis;
+    int nVarCategories;
+    std::string VarDef;
+    std::vector<float> varCatBoundaries;
+    double JetPtForDiffAnalysis;
+    double varValue;
+    double DiffAna_Njets, DiffAna_LeadJetpT, DiffAna_dRapidityHiggsJet, DiffAna_Mjj, DiffAna_dEtajj, DiffAna_Zepp, DiffAna_dPhijj, DiffAna_dPhiggjj;
+
     bool splitwzh;
 
     void fillOpTree(LoopAll& l, const TLorentzVector & lead_p4, const TLorentzVector & sublead_p4, Float_t vtxProb,
@@ -141,6 +149,7 @@ class StatAnalysis : public PhotonAnalysis
 
     void  computeExclusiveCategory(LoopAll & l, int & category, std::pair<int,int> diphoton_index, float pt, float mass, float diphoBDT=1., bool mvaselection=false);
     void computeSpinCategory(LoopAll &l, int &category, TLorentzVector lead_p4, TLorentzVector sublead_p4);
+    void computeDifferentialVariableCategory(LoopAll &l, int &category, TLorentzVector lead_p4, TLorentzVector sublead_p4, int diphoton_id, float* smeared_pho_energy);
 
     void fillControlPlots(const TLorentzVector & lead_p4, const  TLorentzVector & sublead_p4, const TLorentzVector & Higgs, 
 			  float lead_r9, float sublead_r9, int diphoton_index, 

@@ -311,10 +311,10 @@ bool CategoryAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLor
     VHhadevent = false;
 
     if(includeVHlep){
-	VHmuevent=MuonTag2012B(l, diphotonVHlep_id, mu_ind, muVtx, VHmuevent_cat, &smeared_pho_energy[0], lep_sync, true, phoidMvaCut, 0., smeared_pho_weight, false);
-	ElectronStudies2012B(l, &smeared_pho_energy[0], true,  phoidMvaCut, 0., 0., jentry);
+	VHmuevent=MuonTag2012B(l, diphotonVHlep_id, mu_ind, muVtx, VHmuevent_cat, &smeared_pho_energy[0], lep_sync, true, phoidMvaCutEB,phoidMvaCutEE, 0., smeared_pho_weight, false);
+	ElectronStudies2012B(l, &smeared_pho_energy[0], true,  phoidMvaCutEB,phoidMvaCutEE, 0., 0., jentry);
 	int diphotonVH_ele_id=-1;
-	VHelevent=ElectronTag2012B(l, diphotonVH_ele_id, el_ind, elVtx, VHelevent_cat, &smeared_pho_energy[0], lep_sync, true, phoidMvaCut, 0., smeared_pho_weight, false);
+	VHelevent=ElectronTag2012B(l, diphotonVH_ele_id, el_ind, elVtx, VHelevent_cat, &smeared_pho_energy[0], lep_sync, true, phoidMvaCutEB,phoidMvaCutEE, 0., smeared_pho_weight, false);
 	if(!VHmuevent && VHelevent){
 	    diphotonVHlep_id=diphotonVH_ele_id;
 	}
@@ -322,8 +322,8 @@ bool CategoryAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLor
 
     if(includeVHmet && !run7TeV4Xanalysis) {
 	//	    std::cout << "+++PFMET UNCORR " << l.met_pfmet << std::endl;
-	if(!isSyst) VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCut, false); 
-	if(isSyst)  VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCut, true); 
+	if(!isSyst) VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCutEB,phoidMvaCutEE, false); 
+	if(isSyst)  VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCutEB,phoidMvaCutEE, true); 
 	// FIXME  need to un-flag events failing the diphoton mva cut.
     }
 
@@ -334,7 +334,7 @@ bool CategoryAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLor
 
     // Flag whether this is a VBF event (separately for MVA and CIC because sublead Et cut is different)
     if(includeVBF) {   
-	diphotonVBF_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtVBFCut,subleadEtVBFCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0] );
+	diphotonVBF_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtVBFCut,subleadEtVBFCut,phoidMvaCutEB,phoidMvaCutEE,applyPtoverM, &smeared_pho_energy[0] );
 	VBFevent= VBFTag2012(vbfIjet1, vbfIjet2, l, diphotonVBF_id, &smeared_pho_energy[0], false, 0., 0.);
 
 	diphotonVBF_id_CIC = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVBFCut, subleadEtVBFCut, 4,false, &smeared_pho_energy[0], true); 
@@ -414,7 +414,7 @@ bool CategoryAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLor
 
     // Kinematic preselection (pt and eta cuts only)
     int diphoton_id_kinonly = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),
-							leadEtCut,subleadEtCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0], false, true, -100, -1, false);
+							leadEtCut,subleadEtCut,phoidMvaCutEB,phoidMvaCutEE,applyPtoverM, &smeared_pho_energy[0], false, true, -100, -1, false);
     if (diphoton_id_kinonly > -1 ) {
       passKin = true;
       diphoton_index_kinonly = std::make_pair( l.dipho_leadind[diphoton_id_kinonly],  l.dipho_subleadind[diphoton_id_kinonly] );
@@ -425,7 +425,7 @@ bool CategoryAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLor
     }
 
     // Preselection
-    diphoton_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtCut,subleadEtCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0] ); 
+    diphoton_id = l.DiphotonMITPreSelection(bdtTrainingType.c_str(),leadEtCut,subleadEtCut,phoidMvaCutEB,phoidMvaCutEE,applyPtoverM, &smeared_pho_energy[0] ); 
     if (diphoton_id > -1 ) {
       passMVApresel = true;
       catMVA = -1;

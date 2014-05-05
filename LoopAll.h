@@ -587,9 +587,9 @@ std::vector<int> DiphotonCiCSelectionForTaggedChannels( phoCiCIDLevel LEADCUTLEV
 						     std::vector<int> cutsbycat=std::vector<int>(0));
  
 
-std::vector<int> DiphotonMITPreSelectionForTaggedChannels(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, bool vetodipho=false, bool kinonly=false, float dipho_BDT_Cut=-100,int fixedvtx=-1, bool split=false, std::vector<bool> veto_indices=std::vector<bool>(false));
-int DiphotonMITPreSelection(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, bool vetodipho=false, bool kinonly=false, float dipho_BDT_Cut=-100,int fixedvtx=-1, bool split=false, std::vector<bool> veto_indices=std::vector<bool>(false));
-float DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, int fixedvtx=-1, bool split=false, bool kinonly=false, std::vector<bool> veto_indices=std::vector<bool>(false));
+ std::vector<int> DiphotonMITPreSelectionForTaggedChannels(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCutEB, Float_t phoidMvaCutEE, bool applyPtoverM, float *pho_energy_array=0, bool vetodipho=false, bool kinonly=false, float dipho_BDT_Cut=-100,int fixedvtx=-1, bool split=false, std::vector<bool> veto_indices=std::vector<bool>(false));
+ int DiphotonMITPreSelection(const char * type, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCutEB, Float_t phoidMvaCutEE, bool applyPtoverM, float *pho_energy_array=0, bool vetodipho=false, bool kinonly=false, float dipho_BDT_Cut=-100,int fixedvtx=-1, bool split=false, std::vector<bool> veto_indices=std::vector<bool>(false));
+ float DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCutEB, Float_t phoidMvaCutEE, bool applyPtoverM, float *pho_energy_array=0, int fixedvtx=-1, bool split=false, bool kinonly=false, std::vector<bool> veto_indices=std::vector<bool>(false));
 int DiphotonMITPreSelection2011(Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, bool kinonly=false);
 
 /** for a photon index, applies all levels of cuts and returns the
@@ -1299,8 +1299,8 @@ bool CheckSphericalPhoton(int ieta, int iphi) const;
 bool CheckSphericalPhoton(int phoind) const;
 
 void VHNewLeptonCategorization(bool & VHlep1event, bool & VHlep2event, int diphotonVHlep_id, int vertex, bool VHelevent_prov, bool VHmuevent_prov, int el_ind, int mu_ind, float* smeared_pho_energy, float METcut, bool moriond2013MetCorrection);
- void VHTwoMuonsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & muVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCut, bool vetodipho, bool kinonly, const char * type,float deltaRcut);
- void VHTwoElectronsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & elVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCut, bool vetodipho, bool kinonly, const char * type, float deltaRcut);
+ void VHTwoMuonsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & muVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCutEB, float phoidMvaCutEE, bool vetodipho, bool kinonly, const char * type,float deltaRcut);
+ void VHTwoElectronsEvents(bool & VHlep1event, bool & VHlep2event, int & diphotonVHlep_id, int & elVtx, float* smeared_pho_energy, float leadEtVHlepCut, float subleadEtVHlepCut, bool applyPtoverM, bool mvaselection, float diphobdt_output_Cut_VHLep, float phoidMvaCutEB, float phoidMvaCutEE, bool vetodipho, bool kinonly, const char * type, float deltaRcut);
  
 private:
   Float_t photonIDMVA2012(Int_t, Int_t, TLorentzVector &, const char*);
