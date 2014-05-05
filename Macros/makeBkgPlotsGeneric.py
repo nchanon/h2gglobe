@@ -7,12 +7,35 @@ import logging
 procMap={
     'SM':('ggh', 'vbf', 'wzh', 'wh', 'zh', 'tth'),
     'BSM':('gg_grav',), 
+    'GEN':("Bin0","Bin1","Bin2","Bin3","Bin4","Bin5"),
     }
 
 types = ('baseline','massfact','spin')
 
 def makeLabels():
     aDict={}
+    aDict['Bin'] = (
+	"cat0",
+	"cat1",
+	"cat2",
+	"cat3",
+	"cat4",
+	"cat5",
+	"cat6",
+	"cat7",
+	"cat8",
+	"cat9",
+	"cat10",
+	"cat11",
+	"cat12",
+	"cat13",
+	"cat14",
+	"cat15",
+	"cat16",
+	"cat17",
+	"cat18",
+	"cat19",
+    )
     #one day this could be made with itertools...
     aDict['baseline'] = (
 	"cat0",
@@ -31,6 +54,28 @@ def makeLabels():
 	"cat13",
 	"cat14",
 	"cat15",
+    )
+    aDict['baselinePt'] = (
+	"cat0",
+	"cat1",
+	"cat2",
+	"cat3",
+	"cat4",
+	"cat5",
+	"cat6",
+	"cat7",
+	"cat8",
+	"cat9",
+	"cat10",
+	"cat11",
+	"cat12",
+	"cat13",
+	"cat14",
+	"cat15",
+	"cat16",
+	"cat17",
+	"cat18",
+	"cat19",
     )
     aDict['baseline7TeV'] = (
         #"Both photons in barrel, min(R_{9}) > 0.94",

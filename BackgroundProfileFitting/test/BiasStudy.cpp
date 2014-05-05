@@ -108,6 +108,7 @@ int main(int argc, char* argv[]){
   string datFileName;
   string outDir;
   int cat;
+  int nBins;
   int ntoys;
   int jobn;
   int seed;
@@ -133,6 +134,7 @@ int main(int argc, char* argv[]){
     ("datfile,d", po::value<string>(&datFileName)->default_value("config.dat"),                 "Name of datfile containing pdf info")
     ("outDir,D", po::value<string>(&outDir)->default_value("./"),                               "Name of out directory for plots")
     ("cat,c", po::value<int>(&cat),                                                             "Category")
+    ("nBins", po::value<int>(&nBins)->default_value(-1),                                        "NumberOfBins. Default -1. If nBins=5, 5 must be the last and exists (bkg)")
     ("ntoys,t", po::value<int>(&ntoys)->default_value(0),                                       "Number of toys to run")
     ("jobn,j", po::value<int>(&jobn)->default_value(0),                                         "Job number")
     ("seed,r", po::value<int>(&seed)->default_value(0),                                         "Set random seed")
@@ -232,7 +234,12 @@ int main(int argc, char* argv[]){
   RooDataSet *data = (RooDataSet*)bkgWS->data(Form("data_mass_cat%d",cat));
   //RooDataSet *data = (RooDataSet*)bkgWS->data(Form("data_cat%d_7TeV",cat));
   RooDataHist *dataBinned = new RooDataHist(Form("roohist_data_mass_cat%d",cat),Form("roohist_data_mass_cat%d",cat),RooArgSet(*mass),*data);
-  RooDataSet *sigMC = (RooDataSet*)sigWS->data(Form("sig_ggh_mass_m%d_cat%d",expectSignalMass,cat));
+
+  RooDataSet *sigMC;
+  if (nBins<0)
+  {
+  //RooDataSet *sigMC = (RooDataSet*)sigWS->data(Form("sig_ggh_mass_m%d_cat%d",expectSignalMass,cat));
+  sigMC = (RooDataSet*)sigWS->data(Form("sig_ggh_mass_m%d_cat%d",expectSignalMass,cat));
   RooDataSet *sigMC_vbf = (RooDataSet*)sigWS->data(Form("sig_vbf_mass_m%d_cat%d",expectSignalMass,cat));
   RooDataSet *sigMC_wh = (RooDataSet*)sigWS->data(Form("sig_wh_mass_m%d_cat%d",expectSignalMass,cat));
   RooDataSet *sigMC_zh = (RooDataSet*)sigWS->data(Form("sig_zh_mass_m%d_cat%d",expectSignalMass,cat));
@@ -243,6 +250,20 @@ int main(int argc, char* argv[]){
   sigMC->append(*sigMC_wh);
   sigMC->append(*sigMC_zh);
   sigMC->append(*sigMC_tth);
+  }
+  else
+  {
+  std::cout << "Signal Model Building " << std::endl; 
+  sigMC = (RooDataSet*)sigWS->data(Form("sig_Bin0_mass_m%d_cat%d",expectSignalMass,cat));
+  sigMC->Print();
+  for(int iBin=1;iBin<=nBins;iBin++)
+  	{
+  	RooDataSet *sigMC_i = (RooDataSet*)sigWS->data(Form("sig_Bin%d_mass_m%d_cat%d",iBin,expectSignalMass,cat));
+	sigMC_i->Print();
+  	std::cout << "Appending Bin "<<iBin << std::endl; 
+	sigMC->append(*sigMC_i);
+ 	}
+  }
   //RooExtendPdf *ggh_pdf = (RooExtendPdf*)sigWS->pdf(Form("sigpdfsmrel_cat%d_7TeV_ggh",cat));
   //RooExtendPdf *vbf_pdf = (RooExtendPdf*)sigWS->pdf(Form("sigpdfsmrel_cat%d_7TeV_vbf",cat));
   //RooExtendPdf *wzh_pdf = (RooExtendPdf*)sigWS->pdf(Form("sigpdfsmrel_cat%d_7TeV_wzh",cat));
