@@ -7,7 +7,8 @@
 #include <string>
 
 #ifndef UNFOLD_INHERITANCE
-#define UNFOLD_INHERITANCE StatAnalysis
+//#define UNFOLD_INHERITANCE StatAnalysis
+#define UNFOLD_INHERITANCE MassFactorizedMvaAnalysis
 #endif
 
 

@@ -70,16 +70,16 @@ nDataBins=160
 #varCatBoundaries=0.,0.11,0.22,0.35,0.5,1.
 #bkgPolOrderByCat=4,4,4,4,4,5,4,4,4,4,4,4,4,4,5,5,5,4,5,5
 
-#pT/m*125
-#VarDef=pToMscaled
-#nVarCategories=5
-#varCatBoundaries=0.,20.,35.,60.,130.,400.
-#bkgPolOrderByCat=5,4,4,4,4,5,5,5,5,5,4,5,5,4,4,5,6,5,5,5
+pT/m*125
+VarDef=pToMscaled
+nVarCategories=5
+varCatBoundaries=0.,20.,35.,60.,130.,400.
+bkgPolOrderByCat=5,4,4,4,4,5,5,5,5,5,4,5,5,4,4,5,6,5,5,5
 
-VarDef=pT
-nVarCategories=6
-varCatBoundaries=0.,18.,33.,58.,112.,200.,7000.
-bkgPolOrderByCat=5,5,5,5,5,4,5,5,5,5,5,4,5,5,5,5,5,4,5,5,5,5,5,4
+#VarDef=pT
+#nVarCategories=6
+#varCatBoundaries=0.,18.,33.,58.,112.,200.,7000.
+#bkgPolOrderByCat=5,5,5,5,5,4,5,5,5,5,5,4,5,5,5,5,5,4,5,5,5,5,5,4
 
 
 
@@ -90,8 +90,8 @@ photonLevel2013IDMVA_EB=aux/2013FinalPaper_PhotonID_Barrel_BDT_TrainRangePT15.we
 photonLevel2013IDMVA_EE=aux/2013FinalPaper_PhotonID_Endcap_BDT_TrainRangePT15.weights.xml
 
 
-sigPointsToBook=125
-#sigPointsToBook=110,115,120,125,130,135,140,145,150
+#sigPointsToBook=125
+sigPointsToBook=110,115,120,125,130,135,140,145,150
 
 
 
