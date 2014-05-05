@@ -37,6 +37,7 @@ if __name__  == "__main__":
 	parser.add_option("-n","--nJobs",type="int", dest="nJobs",default=-1,help="default: %default")
 	parser.add_option("-o","--outputScript",dest="outputScript",default="",help="default: %default")
 	parser.add_option("-l","--label",dest="label",default="",help="default: %default")
+	parser.add_option("-v","--var",dest="var",default="",help="default: %default")
 	parser.add_option("","--runIC",dest="runIC",default=False, action="store_true",help="default: %default")
 	parser.add_option("-u","--user",dest="user",default="",help="default: %default")
 	parser.add_option("-a","--addfile",dest="addfiles",action="append",default=[],help="default: %default")
@@ -54,6 +55,9 @@ if __name__  == "__main__":
 	
 	(options,args)=parser.parse_args()
 
+	if options.var != "":
+		options.label += "_"+ options.var
+	
 	if options.onlyData:
 		options.skipData = False
 		options.skipSig = True
@@ -98,6 +102,7 @@ if __name__  == "__main__":
 			continue
 
 		line = line.replace("%(label)s",options.label)
+		line = line.replace("%(var)",options.var)
 
 		if "histfile" in line:
 			cfg.read_histfile(line)

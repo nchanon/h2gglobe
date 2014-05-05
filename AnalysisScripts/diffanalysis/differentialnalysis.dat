@@ -70,11 +70,11 @@ nDataBins=160
 #varCatBoundaries=0.,0.11,0.22,0.35,0.5,1.
 #bkgPolOrderByCat=4,4,4,4,4,5,4,4,4,4,4,4,4,4,5,5,5,4,5,5
 
-pT/m*125
-VarDef=pToMscaled
-nVarCategories=5
-varCatBoundaries=0.,20.,35.,60.,130.,400.
-bkgPolOrderByCat=5,4,4,4,4,5,5,5,5,5,4,5,5,4,4,5,6,5,5,5
+#pT/m*125
+#VarDef=pToMscaled
+#nVarCategories=5
+#varCatBoundaries=0.,20.,35.,60.,130.,400.
+#bkgPolOrderByCat=5,4,4,4,4,5,5,5,5,5,4,5,5,4,4,5,6,5,5,5
 
 #VarDef=pT
 #nVarCategories=6
@@ -113,3 +113,4 @@ runJetsForSpin=0
 #doInterferenceSmear=0
 #doCosThetaDependentInterferenceSmear=1
 #interferenceHist=spinanalysis/interferenceHists.root
+

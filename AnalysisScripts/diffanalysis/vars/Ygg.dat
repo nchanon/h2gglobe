@@ -1,0 +1,11 @@
+
+VarDef=Ygg
+nVarCategories=5
+varCatBoundaries=0.,0.17,0.38,0.62,0.95,5
+bkgPolOrderByCat=4,4,4,4,3,4,4,4,4,3,4,4,4,4,3,4,4,4,4,3
+
+#VarDef=Ygg
+#nVarCategories=5
+#varCatBoundaries=0.,0.3,0.6,1.,1.4,2.4
+#bkgPolOrderByCat=4,4,4,4,3,4,4,4,4,3,4,4,4,4,3,4,4,4,4,3
+#splitwzh=0

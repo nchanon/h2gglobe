@@ -1,0 +1,6 @@
+
+VarDef=dPhijj
+JetPtForDiffAnalysis=25
+nVarCategories=4
+varCatBoundaries=0.,1.,2.,2.8,3.1416
+bkgPolOrderByCat=3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3

@@ -1,4 +1,4 @@
-intL=19715. histfile=/store/user/chanon/DiffAnaWorkSpaces/%(label)s/CMS-HGG.root output=eventsList.txt sqrtS=8
+intL=19715. histfile=/store/user/amarini/HGG/DiffAnaWorkSpaces/%(label)s/CMS-HGG.root output=eventsList.txt sqrtS=8
 #intL=19715. histfile=test_CMS-HGG.root output=eventsList.txt sqrtS=8
 #intL=19715. histfile=/store/user/amarini/CMS-HGG/%(label)s/CMS-HGG.root output=eventsList.txt
 
@@ -93,5 +93,5 @@ treevariables massfac_mva_binned/fullmvatrees.dat treevariables_optree.dat diffe
 ##
 ## analyzer PhotonAnalysis photonanalysis.dat
 #analyzer MassFactorizedMvaAnalysis photonanalysis.dat analysis_settings.dat massfactorizedmvaanalysis.dat differentialanalysis/differentialnalysis.dat saveDatacardTrees_=0  dumpAscii=1 dumpMcAscii=0 doFullMvaFinalTree=1 fillOptTree=1
-analyzer UnfoldAnalysis photonanalysis.dat analysis_settings.dat massfactorizedmvaanalysis.dat differentialanalysis/differentialnalysis.dat saveDatacardTrees_=0  dumpAscii=1 dumpMcAscii=0 doFullMvaFinalTree=1 fillOptTree=1 differentialanalysis/unfolding.dat
+analyzer UnfoldAnalysis photonanalysis.dat analysis_settings.dat massfactorizedmvaanalysis.dat differentialanalysis/differentialnalysis.dat saveDatacardTrees_=0  dumpAscii=1 dumpMcAscii=0 doFullMvaFinalTree=1 fillOptTree=1 differentialanalysis/vars/%(var).dat  differentialanalysis/unfolding.dat
 
