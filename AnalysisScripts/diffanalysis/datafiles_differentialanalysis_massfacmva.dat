@@ -79,7 +79,7 @@ inputBranches massfactorizedmvaanalysis_input.dat
 inputBranches minimal_leptmetanalysis_input.dat
 inputBranches TTVH_analysis_input.dat
 
-treevariables massfac_mva_binned/fullmvatrees.dat treevariables_optree.dat differentialanalysis/treevariables_optree_differential.dat
+treevariables massfac_mva_binned/fullmvatrees.dat treevariables_optree.dat diffanalysis/treevariables_optree_differential.dat
 
 #treevariables massfac_mva_binned/treevariables_optree.dat
 #runZeeValidation=1
@@ -93,5 +93,5 @@ treevariables massfac_mva_binned/fullmvatrees.dat treevariables_optree.dat diffe
 ##
 ## analyzer PhotonAnalysis photonanalysis.dat
 #analyzer MassFactorizedMvaAnalysis photonanalysis.dat analysis_settings.dat massfactorizedmvaanalysis.dat differentialanalysis/differentialnalysis.dat saveDatacardTrees_=0  dumpAscii=1 dumpMcAscii=0 doFullMvaFinalTree=1 fillOptTree=1
-analyzer UnfoldAnalysis photonanalysis.dat analysis_settings.dat massfactorizedmvaanalysis.dat differentialanalysis/differentialnalysis.dat saveDatacardTrees_=0  dumpAscii=1 dumpMcAscii=0 doFullMvaFinalTree=1 fillOptTree=1 differentialanalysis/vars/%(var).dat  differentialanalysis/unfolding.dat
+analyzer UnfoldAnalysis photonanalysis.dat analysis_settings.dat massfactorizedmvaanalysis.dat diffanalysis/differentialnalysis.dat saveDatacardTrees_=0  dumpAscii=1 dumpMcAscii=0 doFullMvaFinalTree=1 fillOptTree=1 diffanalysis/vars/%(var).dat  diffanalysis/unfolding.dat
 
