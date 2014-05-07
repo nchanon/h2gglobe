@@ -83,13 +83,14 @@ void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins)
     }//end for sigPointsToBook
 
     //I use TH1F instead of TNamed, so they know how to merge files and so on
-    TH1F *n=new TH1F("VarDef",VarDef.c_str(),1,0,1);
-    l.rooContainer->AppendTH1F("VarDef",n);
-    string boundaries="";
-    for(int i=0;i<varCatBoundaries.size();i++)
-	    boundaries += Form(",%.1f",varCatBoundaries[i]);
-    TH1F *n2=new TH1F("varCatBoundaries",boundaries.c_str(),1,0,1);
-    l.rooContainer->AppendTH1F("varCatBoundaries",n2);
+    //TH1F *n=new TH1F("VarDef",VarDef.c_str(),1,0,1);
+    //l.rooContainer->AppendTH1F("VarDef",n);
+    //string boundaries="";
+    //for(int i=0;i<varCatBoundaries.size();i++)
+//	    boundaries += Form(",%.1f",varCatBoundaries[i]);
+    //TH1F *n2=new TH1F("varCatBoundaries",boundaries.c_str(),1,0,1);
+    //l.rooContainer->AppendTH1F("varCatBoundaries",n2);
+    //l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_mass_m%d",iBin,sig),-1);
 }
 
 
