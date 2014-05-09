@@ -101,6 +101,10 @@ void HistoContainer::Fill(std::string name, int category, float value, float wei
   std::map<std::string, std::vector<TH1F> >::iterator it = h1.find(std::string(name));
   /// if( category == 0 )std::cerr << " HistoContainer::Fill " << total_scale << " " << weight << std::endl;
   if (it != h1.end()) {
+    if(it->second.size()<=category ) {
+	    std::cout<< "HistoContainer Error: TH1F dose not exist. Size="<< it->second.size()<< "cat="<<category <<std::endl;
+	    return ;
+   	 }
     (it->second)[category].Fill(value, total_scale*weight);
     return;
   }
@@ -121,6 +125,10 @@ void HistoContainer::Fill2D(std::string name, int category, float valuex, float 
 
   std::map<std::string, std::vector<TH2F> >::iterator it2 = h2.find(std::string(name));
   if (it2 != h2.end()) {
+    if(it2->second.size()<=category ) {
+	    std::cout<< "HistoContainer Error: TH2F dose not exist. Size="<< it2->second.size()<< "cat="<<category <<std::endl;
+	    return ;
+   	 }
     (it2->second)[category].Fill(valuex, valuey, total_scale*weight);
     return;
   }

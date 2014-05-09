@@ -28,6 +28,7 @@
 #include "HiggsAnalysis/GBRLikelihood/interface/HybridGBRForest.h"
 #include "HiggsAnalysis/GBRLikelihood/interface/HybridGBRForestD.h"
 
+//#include "HiggsAnalysis/GBRLikelihoodEGTools/interface/SigETransform.h"
 class JetHandler;
 
 // ------------------------------------------------------------------------------------
@@ -260,6 +261,9 @@ class PhotonAnalysis : public BaseAnalysis
     std::string photonFixDat;
     std::string regressionFile;
     int regressionVersion;
+
+    string sigEoEtransformFile;
+    bool doSigEoEtransform;
 
     int   nEtaCategories, nR9Categories, nPtCategories, nPtOverMCategories, nVtxCategories;
     float R9CatBoundary;
@@ -654,6 +658,7 @@ class PhotonAnalysis : public BaseAnalysis
 
     HybridGBRForestD *_forestDeb;
     HybridGBRForestD *_forestDee;
+
 
     RooRealVar *_mean;
     RooRealVar *_tgt;

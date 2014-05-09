@@ -21,6 +21,7 @@ cout<<"JetEtaForDiffAnalysis=" <<JetEtaForDiffAnalysis<<endl;
 cout<<"JetPtForDiffAnalysis="  <<JetPtForDiffAnalysis<<endl;
 cout<<"VarDef="                <<VarDef<<endl;
 cout<<"nVarCategories="        <<nVarCategories<<endl;
+cout<<"nCategories="        <<nCategories_<<endl;
 cout<<"varCatBoundaries=";
 for(int i=0;i<varCatBoundaries.size();i++)cout<<varCatBoundaries[i]<<",";
 	cout<<endl;
@@ -63,6 +64,7 @@ void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins)
 			cout<<endl;
 		//genLevel Histograms -
 		// book only 1 cat
+		assert(l.rooContainer->ncat == nCategories_);
 		l.rooContainer->SetNCategories(1);
 		for(int iBin=0;iBin<= nVarCategories;iBin++)
 			{
@@ -107,7 +109,7 @@ int bin=-1;
 
 //figure out gen bin: gen selection
 
-if (doUnfoldHisto)
+if (doUnfoldHisto && cur_type <0)
 	{
 	bin= computeGenBin(l,cur_type)	;
 	if ( bin<0 ) bin=nVarCategories;

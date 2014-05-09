@@ -3,7 +3,8 @@ doDifferentialAnalysis=1
 doMvaForDifferentialAnalysis=1
 phoidMvaCutEB=0.02
 phoidMvaCutEE=0.06
-sigmaMoMCategoryBoundaries=0.,0.0075,0.0089,0.0128,0.0205
+#sigmaMoMCategoryBoundaries=0.,0.0075,0.0089,0.0128,0.0205
+sigmaMoMCategoryBoundaries=0.0205,0.0128,0.0089,0.0075,0
 
 massMin=100.
 massMax=180.
@@ -114,3 +115,5 @@ runJetsForSpin=0
 #doCosThetaDependentInterferenceSmear=1
 #interferenceHist=spinanalysis/interferenceHists.root
 
+sigEoEtransformFile=aux/sigetrans_v1.root
+doSigEoEtransform=1

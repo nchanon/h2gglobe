@@ -24,9 +24,19 @@ void MassResolution::Setup(LoopAll &l, PhotonReducedInfo *leadInfo, PhotonReduce
 
   //lead_sc_pos    = leadPhoton->caloPosition();
   //sublead_sc_pos = subleadPhoton->caloPosition();
+    if( (!_sigeTransform.IsInitialized() ) && sigEoEtransformFile !="" )
+        {
+        _sigeTransform.Initialize(sigEoEtransformFile,1);
+        }
 
   lead_Eres    = leadPhoton->corrEnergyErr() / leadPhoton->corrEnergy();
+
   sublead_Eres = subleadPhoton->corrEnergyErr() / subleadPhoton->corrEnergy();
+
+  if (sigEoEtransformFile != ""){
+     lead_Eres_decorr =  _sigeTransform.sigEoverETranformed(leadPhoton->corrEnergyErr() /leadPhoton->corrEnergy(),leadPhoton->caloPosition().Eta(),leadPhoton->energy());
+     sublead_Eres_decorr =  _sigeTransform.sigEoverETranformed(subleadPhoton->corrEnergyErr() /subleadPhoton->corrEnergy(),subleadPhoton->caloPosition().Eta(),subleadPhoton->energy());
+  }
 
   lead_r9      = leadPhoton->r9();
   sublead_r9   = subleadPhoton->r9();
@@ -239,3 +249,38 @@ double MassResolution::TanH(double x){
   return TMath::TanH(x);
 }
 
+double MassResolution::decorrRelMassResolutionCorrVtx(){
+
+  TLorentzVector lead_p4=leadPhoton->p4(vertex->X(),vertex->Y(),vertex->Z());
+  TLorentzVector sublead_p4=subleadPhoton->p4(vertex->X(),vertex->Y(),vertex->Z());
+
+  double alpha = lead_p4.Angle(sublead_p4.Vect());
+  double lead_sig = decorrLeadRelPhotonResolution();
+  double sublead_sig = decorrSubleadRelPhotonResolution();
+  double alpha_sig = angleResolutionCorrVtx();
+  
+  return 0.5*TMath::Sqrt((lead_sig*lead_sig)+(sublead_sig*sublead_sig)
+			 +((alpha_sig*alpha_sig)*(TMath::Sin(alpha)/(1.-TMath::Cos(alpha)))*(TMath::Sin(alpha)/(1.-TMath::Cos(alpha)))));
+
+}
+double MassResolution::decorrRelMassResolutionWrongVtx(){
+  
+  double alpha_sig = 0.5*angleResolutionWrongVtx();
+  
+  double sigmaM = decorrRelMassResolutionEonly(); 
+  return TMath::Sqrt((sigmaM*sigmaM)+(alpha_sig*alpha_sig));
+}
+double MassResolution::decorrRelMassResolutionEonly() {
+
+  double lead_sig = decorrLeadRelPhotonResolution();
+  double sublead_sig = decorrSubleadRelPhotonResolution();
+
+  return 0.5*TMath::Sqrt((lead_sig*lead_sig)+(sublead_sig*sublead_sig));
+}
+
+double MassResolution::decorrLeadRelPhotonResolution(){
+  return lead_Eres_decorr;
+}
+double MassResolution::decorrSubleadRelPhotonResolution(){
+  return sublead_Eres_decorr;
+}

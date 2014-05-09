@@ -168,6 +168,9 @@ PhotonAnalysis::PhotonAnalysis()  :
 
     _foresteb=0;  
     _forestee=0; 
+
+    sigEoEtransformFile="";
+    doSigEoEtransform = false;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -1347,6 +1350,7 @@ void PhotonAnalysis::Init(LoopAll& l)
 
     // MassResolution
     massResolutionCalculator = new MassResolution();
+    if (doSigEoEtransform) massResolutionCalculator->sigEoEtransformFile=sigEoEtransformFile;
 
     /* -------------------------------------------------------------------------------------------
        Pileup Reweighting
@@ -3392,6 +3396,12 @@ bool PhotonAnalysis::ElectronStudies2012B(LoopAll& l, float* smeared_pho_energy,
     float sigmaMrv = massResolutionCalculator->relMassResolutionEonly();
     float sigmaMwv = massResolutionCalculator->relMassResolutionWrongVtx();
     float sigmaMeonly = massResolutionCalculator->relMassResolutionEonly();
+
+    if (doSigEoEtransform){
+        sigmaMrv= massResolutionCalculator->decorrRelMassResolutionEonly(); //TODO
+        sigmaMwv = massResolutionCalculator->decorrRelMassResolutionWrongVtx();
+        sigmaMeonly = massResolutionCalculator->decorrRelMassResolutionEonly();
+        }
     // easy to calculate vertex probability from vtx mva output
     float vtxProb   = 1.-0.49*(vtx_mva+1.0); /// should better use this: vtxAna_.setPairID(diphoton_id); vtxAna_.vertexProbability(vtx_mva); PM
     if( debuglocal ) std::cout<<"test02"<<std::endl;
@@ -3630,6 +3640,13 @@ bool PhotonAnalysis::ElectronTagStudies2012(LoopAll& l, int diphotonVHlep_id, fl
     float sigmaMrv = massResolutionCalculator->relMassResolutionEonly();
     float sigmaMwv = massResolutionCalculator->relMassResolutionWrongVtx();
     float sigmaMeonly = massResolutionCalculator->relMassResolutionEonly();
+
+    if (doSigEoEtransform){
+        sigmaMrv= massResolutionCalculator->decorrRelMassResolutionEonly(); //TODO
+        sigmaMwv = massResolutionCalculator->decorrRelMassResolutionWrongVtx();
+        sigmaMeonly = massResolutionCalculator->decorrRelMassResolutionEonly();
+        }
+
     // easy to calculate vertex probability from vtx mva output
     float vtxProb   = 1.-0.49*(vtx_mva+1.0); /// should better use this: vtxAna_.setPairID(diphoton_id); vtxAna_.vertexProbability(vtx_mva); PM
     if( debuglocal ) std::cout<<"test02"<<std::endl;
@@ -6395,6 +6412,12 @@ float PhotonAnalysis::getDiphoBDTOutput(LoopAll &l,int diphoton_id, TLorentzVect
     float sigmaMrv = massResolutionCalculator->relMassResolutionCorrVtx();
     float sigmaMwv = massResolutionCalculator->relMassResolutionWrongVtx();
     float sigmaMeonly = massResolutionCalculator->relMassResolutionEonly();
+
+    if (doSigEoEtransform){
+        sigmaMrv= massResolutionCalculator->decorrRelMassResolutionCorrVtx();
+        sigmaMwv = massResolutionCalculator->decorrRelMassResolutionWrongVtx();
+        sigmaMeonly = massResolutionCalculator->decorrRelMassResolutionEonly();
+        }
     
     //diphoton mva                                                                                                                                                     
     float diphobdt_output = l.diphotonMVA(-1,l.dipho_leadind[diphoton_id],l.dipho_subleadind[diphoton_id],0 ,//vertex 0 probability 1                             
@@ -6615,6 +6638,16 @@ void PhotonAnalysis::GetSinglePhotonRegressionCorrectionV7(LoopAll &l, int ipho,
     //set final energy and relative energy resolution
     *ecor = den*cbmean;
     double sigEoverE = cbsigma/cbmean;
+    //Decorrelation
+    //if( doSigEoEtransform ){
+    //if( (!_sigeTransform.IsInitialized() ))
+    //    {
+    //    _sigeTransform.Initialize(sigEoEtransformFile,1);
+    //    }
+    //    //
+    //    sigEoverE = _sigeTransform.sigEoverETranformed(sigEoverE, sc->Eta(),phoE);
+    //}
+    //---
     *ecorerr = sigEoverE*(*ecor);
 
 

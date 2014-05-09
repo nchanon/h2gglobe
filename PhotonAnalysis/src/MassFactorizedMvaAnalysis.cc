@@ -253,6 +253,7 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
     std::sort(bdtCategoryBoundaries.begin(),bdtCategoryBoundaries.end(), std::greater<float>() );
     nInclusiveCategories_ = bdtCategoryBoundaries.size()-1;
     if (doMvaForDifferentialAnalysis) nInclusiveCategories_ = sigmaMoMCategoryBoundaries.size()-1;
+    cout<<"nInclusiveCategories="<<nInclusiveCategories_<<endl;
 
     if (multiclassVbfSelection || combinedmvaVbfSelection) { 
         std::vector<int> vsize;
@@ -935,12 +936,14 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
         category = GetBDTBoundaryCategory(diphobdt_output,isEBEB,VBFevent);
 	if (doMvaForDifferentialAnalysis) category = GetSigmaMoMBoundaryCategory(sigmaMrv);
+        //cout<<"SMoM or bdt cat="<<category<<endl; //DEBUG
 	
         if (doDiphoMvaUpFront || diphobdt_output>=bdtCategoryBoundaries.back()) { 
             computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt(), Higgs.M(), diphobdt_output, true); 
         }
 
 	if (doDifferentialAnalysis && doMvaForDifferentialAnalysis) {
+        //cout<<"Before Diff variables: category "<<category<<endl;//DEBUG
 	    computeDifferentialVariableCategory(l, category, lead_p4, sublead_p4, diphoton_id, &smeared_pho_energy[0]);
 	}
 
@@ -2343,6 +2346,12 @@ int MassFactorizedMvaAnalysis::GetBDTBoundaryCategory(float bdtout, bool isEB, b
 int MassFactorizedMvaAnalysis::GetSigmaMoMBoundaryCategory(float sigmaMrv){
 
     int cat = categoryFromBoundaries( sigmaMoMCategoryBoundaries, sigmaMrv );
+    if(cat>=0) cat = sigmaMoMCategoryBoundaries.size() -2 - cat;
+//    cout<<"SIGMA MoM CAT "<< cat << "  val "<< sigmaMrv<<endl; //DEBUG DELETEME
+//    cout<<" -> boundaries ";
+//        for(int i=0 ;i<sigmaMoMCategoryBoundaries.size();i++)
+//            cout<<" "<<sigmaMoMCategoryBoundaries[i]<<",";
+//    cout<<endl;
     return cat;
 
 
@@ -2396,6 +2405,7 @@ bool MassFactorizedMvaAnalysis::PreselDiphoFillDiphoMVA(LoopAll &l, float *pho_e
 
 	if (doMvaForDifferentialAnalysis) {
 	    float sumpt = l.DiphotonMITPreSelectionPerDipho(bdtTrainingType.c_str(), id, minleadpt, minsubleadpt, phoidMvaCutEB, phoidMvaCutEE, applyPtoverM, &pho_energy_array[0], -1, 0, 0);
+        if (sigmaMrv > sigmaMoMCategoryBoundaries[0]) sumpt = -99;
 
 	}
 
@@ -2428,6 +2438,10 @@ void MassFactorizedMvaAnalysis::ComputeDiphoMvaInputs(LoopAll &l, float &phoid_m
     float vtx_mva  = l.vtx_std_evt_mva->at(diphoton_id);
     sigmaMrv = massResolutionCalculator->relMassResolutionEonly();
     sigmaMwv = massResolutionCalculator->relMassResolutionWrongVtx();
+    if (doSigEoEtransform){
+        sigmaMrv= massResolutionCalculator->decorrRelMassResolutionEonly();
+        sigmaMwv = massResolutionCalculator->decorrRelMassResolutionWrongVtx();
+        }
     
     vtxAna_.setPairID(diphoton_id); 
     vtxProb = vtxAna_.vertexProbability(vtx_mva);
