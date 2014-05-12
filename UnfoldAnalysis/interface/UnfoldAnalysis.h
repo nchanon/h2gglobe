@@ -55,11 +55,11 @@ float PhoEtaDiffAnalysis;
 float PhoIsoDiffAnalysis;
 float PhoIsoDRDiffAnalysis;
 float JetPhoDRDiffAnalysis;
-float JetEtaForDiffAnalysis;
 
 //ineheredit - must not be redeclared, otherwise shadow them
 
 //---- defined in diff analysis
+//float JetEtaForDiffAnalysis;
 //float JetPtForDiffAnalysis;
 //string VarDef;//("pToMscaled");
 //vector<int> sigPointsToBook;

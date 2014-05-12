@@ -4348,7 +4348,7 @@ bool PhotonAnalysis::FillDijetVariables(int & ijet1, int & ijet2, LoopAll& l, in
     return filled;
 }
 
-int PhotonAnalysis::computeJetVariablesForDifferentialAnalysis(int & ijet1, int & ijet2, LoopAll& l, int diphoton_id, float* smeared_pho_energy,     bool * jetid_flags, bool getAngles, double JetPtForDiffAnalysis){
+int PhotonAnalysis::computeJetVariablesForDifferentialAnalysis(int & ijet1, int & ijet2, LoopAll& l, int diphoton_id, float* smeared_pho_energy,     bool * jetid_flags, bool getAngles, double JetPtForDiffAnalysis,double JetEtaForDiffAnalysis){
 
     int Njets = 0;
     
@@ -4380,7 +4380,7 @@ int PhotonAnalysis::computeJetVariablesForDifferentialAnalysis(int & ijet1, int 
         if (jetid_flags[i]==true){
             TLorentzVector* myjet = (TLorentzVector*)l.jet_algoPF1_p4->At(i);
             if (myjet->Pt()<JetPtForDiffAnalysis) continue;
-            if (fabs(myjet->Eta()) > 4.7) continue;
+            if (fabs(myjet->Eta()) > JetEtaForDiffAnalysis) continue;
             if(myjet->DeltaR(lead_p4) < dr2pho) continue;
             if(myjet->DeltaR(sublead_p4) < dr2pho) continue;
             if(PADEBUG) cout << "JetPtForDiffAnalysis ijet="<<i<<" pt="<< myjet->Pt()<<" jetid_flags[i]="<<jetid_flags[i]<<endl;

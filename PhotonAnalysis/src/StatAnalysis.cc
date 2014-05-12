@@ -2085,7 +2085,7 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
     int ijet1=-1;
     int ijet2=-1;
     bool * jetid_flags;
-    int njet = computeJetVariablesForDifferentialAnalysis(ijet1, ijet2, l, diphoton_id, smeared_pho_energy, jetid_flags, false, JetPtForDiffAnalysis);
+    int njet = computeJetVariablesForDifferentialAnalysis(ijet1, ijet2, l, diphoton_id, smeared_pho_energy, jetid_flags, false, JetPtForDiffAnalysis,JetEtaForDiffAnalysis);
     if (PADEBUG)  std::cout << "njet="<<njet<<" ijet1="<<ijet1<<" ijet2="<<ijet2<<endl;
 		
     DiffAna_Njets = njet;

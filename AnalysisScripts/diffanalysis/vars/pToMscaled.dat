@@ -1,5 +1,8 @@
 #pT/m*125
 VarDef=pToMscaled
-nVarCategories=5
-varCatBoundaries=0.,20.,35.,60.,130.,400.
-bkgPolOrderByCat=5,4,4,4,4,5,5,5,5,5,4,5,5,4,4,5,6,5,5,5
+nVarCategories=6
+#nVarCategories=5
+#varCatBoundaries=0.,20.,35.,60.,130.,400.
+varCatBoundaries=0.,15.,26.,43.,72.,125.,200.,3500.
+#bkgPolOrderByCat=5,4,4,4,4,5,5,5,5,5,4,5,5,4,4,5,6,5,5,5
+bkgPolOrderByCat=5,4,4,4,4,5,5,5,5,5,4,5,5,4,4,5,5,5

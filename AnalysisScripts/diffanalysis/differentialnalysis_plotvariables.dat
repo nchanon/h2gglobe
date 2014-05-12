@@ -1,5 +1,5 @@
 ->
-default=18
+default=20
 htyp=0 plot=-1  ncat=2  xbins=30   ybins=0   xmin=15.0  xmax=100.0  ymin=0      ymax=0    name=MuonTag_mupt_nomvacut     xaxis=P_{T.#mu}                    yaxis=Events
 htyp=0 plot=-1  ncat=2  xbins=30   ybins=0   xmin=-2.6  xmax=2.6    ymin=0      ymax=0    name=MuonTag_mueta_nomvacut    xaxis=#eta_{#mu}                   yaxis=Events
 htyp=0 plot=-1  ncat=2  xbins=30   ybins=0   xmin=-3.2  xmax=3.2    ymin=0      ymax=0    name=MuonTag_muphi_nomvacut    xaxis=#phi_{#mu}                   yaxis=Events

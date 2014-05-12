@@ -80,6 +80,7 @@ class StatAnalysis : public PhotonAnalysis
     std::string VarDef;
     std::vector<float> varCatBoundaries;
     double JetPtForDiffAnalysis;
+    double JetEtaForDiffAnalysis;
     double varValue;
     double DiffAna_Njets, DiffAna_LeadJetpT, DiffAna_dRapidityHiggsJet, DiffAna_Mjj, DiffAna_dEtajj, DiffAna_Zepp, DiffAna_dPhijj, DiffAna_dPhiggjj;
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import subprocess
 
 from optparse import OptionParser
 parser=OptionParser()
@@ -39,6 +40,7 @@ def writeSubScript(cat,mlow,mhigh,mstep,outdir,muInject,massInject):
 
   if options.skipPlots: subline += ' --skipPlots'
 
+#lib:libBackgroundProfileFitting.so   libHiggsAnalysisCombinedLimit.so
   for j in range(options.jstart,options.njobs):
     f = open('%s/%s/sub_cat%d_job%d.sh'%(os.getcwd(),outdir,cat,j),'w')
     f.write('#!/bin/bash\n')
@@ -49,10 +51,22 @@ def writeSubScript(cat,mlow,mhigh,mstep,outdir,muInject,massInject):
     f.write('cd %s\n'%os.getcwd())
     f.write('eval `scramv1 runtime -sh`\n')
     f.write('cd -\n')
-    f.write('cp %s .\n'%os.path.abspath(options.sigfilename))
-    f.write('cp %s .\n'%os.path.abspath(options.bkgfilename))
-    f.write('cp %s .\n'%os.path.abspath(options.datfile))
-    f.write('cp %s/bin/BiasStudy .\n'%(os.getcwd()))
+    f.write('cp -L %s .\n'%os.path.abspath(options.sigfilename))
+    f.write('cp -L %s .\n'%os.path.abspath(options.bkgfilename))
+    f.write('cp -L %s .\n'%os.path.abspath(options.datfile))
+    f.write('cp -L %s/bin/BiasStudy .\n'%(os.getcwd()))
+    # copy libraries
+    for lib in ['libBackgroundProfileFitting.so','libHiggsAnalysisCombinedLimit.so'] :
+	#print "Doing Library",lib
+    	ldd_cmd='ldd %s/bin/BiasStudy | grep \'%s\' | cut -d \'>\' -f 2 | tr -s \' \' | sed \'s/^\ //\' | sed \'s/\\ .*$//\''%(os.getcwd(),lib)
+	#print " -> ",ldd_cmd
+	ldd_stdout=subprocess.check_output(ldd_cmd,shell=True)#,stdout=subprocess.PIPE)
+	#ldd_stdout = p.communicate()[0]#(stdout,stderr)
+    	f.write('cp -L %s ./\n'%(ldd_stdout.split()[0]))
+	#print "-> Done"
+    #add . in library path
+    f.write('LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH\n')
+    #end libraries black
     if options.takeOtherFiles:
      for sandbox_file in options.takeOtherFiles.split(','):
        f.write('cp %s . \n'%os.path.abspath(sandbox_file))
