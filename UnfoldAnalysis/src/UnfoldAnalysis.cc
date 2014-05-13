@@ -193,12 +193,12 @@ TLorentzVector Hgg = g1+g2;
 
 assert(PhoPtDiffAnalysis.size()>0);
 
-if( g1.Pt() < PhoPtDiffAnalysis[0] ) return is_bkg;
+if( g1.Pt()/Hgg.M() < PhoPtDiffAnalysis[0] ) return is_bkg;
 
 if(PhoPtDiffAnalysis.size()>1)
-	if( g2.Pt() < PhoPtDiffAnalysis[1]) return is_bkg;
+	if( g2.Pt()/Hgg.M() < PhoPtDiffAnalysis[1]) return is_bkg;
 else // if only one put equal to the first photon pt cut
-	if( g2.Pt() < PhoPtDiffAnalysis[0] ) return is_bkg;
+	if( g2.Pt()/Hgg.M() < PhoPtDiffAnalysis[0] ) return is_bkg;
 
  //compute isolation for photons
 float pho1Iso=0,pho2Iso=0;
