@@ -11,7 +11,11 @@
 See MassResolution.h for instructions
 */
 
-MassResolution::MassResolution(){}
+MassResolution::MassResolution(){
+
+lead_Eres_decorr = 999.; // extremely high if not setted
+sublead_Eres_decorr = 999.;
+}
 
 void MassResolution::Setup(LoopAll &l, PhotonReducedInfo *leadInfo, PhotonReducedInfo *subleadInfo,int vtx_index,EnergySmearer::energySmearingParameters eSmearPars, int nR9Categories, int nEtaCategories, double beamspotSigma_in, bool usethisvtx) {
   

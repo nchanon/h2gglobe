@@ -2,7 +2,7 @@ doDifferentialAnalysis=1
 
 doMvaForDifferentialAnalysis=1
 phoidMvaCutEB=0.02
-phoidMvaCutEE=0.01
+phoidMvaCutEE=0.10
 #sigmaMoMCategoryBoundaries=0.,0.0075,0.0089,0.0128,0.0205
 # 3 categories decorrelated
 sigmaMoMCategoryBoundaries=0.0183,0.0128,0.0079,0
