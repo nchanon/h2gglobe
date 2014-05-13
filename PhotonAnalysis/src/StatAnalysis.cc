@@ -2172,7 +2172,7 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
 	cout << "varCategory="<<varCategory<<" (category*nVarCategories)+varCategory="<<(category*nVarCategories)+varCategory<<endl;
     }
 
-	cout << "varCategory="<<varCategory<<"category="<<category<<" (category*nVarCategories)+varCategory="<<(category*nVarCategories)+varCategory<<endl; //debug
+	//cout << "varCategory="<<varCategory<<"category="<<category<<" (category*nVarCategories)+varCategory="<<(category*nVarCategories)+varCategory<<endl; //debug
 
     if (varCategory==-1) category=-1;
     else category = (category*nVarCategories)+varCategory;

@@ -1,5 +1,5 @@
 #!/bin/bash
 
 #VARS=pToMscaled pT
-VARS=pToMscaled
-LABEL=v9
+VARS=pToMscaled Ygg CosThetaStar dPhi
+LABEL=v10
