@@ -1,11 +1,11 @@
 
-VarDef=dPhi
-nVarCategories=5
-varCatBoundaries=0.,1.64,2.37,2.76,2.97,3.15
-bkgPolOrderByCat=3,4,4,4,4,3,4,4,4,4,3,4,4,4,4,3,4,4,4,4
-
 #VarDef=dPhi
 #nVarCategories=5
-#varCatBoundaries=0.,1.,1.7,2.3,2.8,3.15
+#varCatBoundaries=0.,1.64,2.37,2.76,2.97,3.15
 #bkgPolOrderByCat=3,4,4,4,4,3,4,4,4,4,3,4,4,4,4,3,4,4,4,4
+
+VarDef=dPhi
+nVarCategories=6
+varCatBoundaries=0.,0.92,1.72,2.37,2.74,2.97,3.15
+bkgPolOrderByCat=3,4,4,4,4,3,4,4,4,4,3,4,4,4,4,3,4,4
 #splitwzh=0
