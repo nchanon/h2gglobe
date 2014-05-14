@@ -45,7 +45,6 @@ void makeSecondOrder(THnSparse * in, THnSparse * norm, THnSparse * sumX, THnSpar
 	sumX->Print("all");
 	sumX2->Print("all");
 	probs[0]=0.8415, probs[1]=0.1585;
-	std::cout << norm->GetNbins() << std::endl;
 	for(int ii=0; ii<norm->GetNbins(); ++ii) {
 		norm->GetBinContent(ii,&idx[0]);
 		for(int idim=0; idim<idx.size(); ++idim) {
@@ -94,9 +93,9 @@ void makeSecondOrder(THnSparse * in, THnSparse * red, SparseIntegrator * norm, S
 		delete hx;
 	}
 	
-	norm->link();
-	sumX->link();
-	sumX2->link();
+	/// norm->link();
+	/// sumX->link();
+	/// sumX2->link();
 }
 
 
@@ -125,9 +124,9 @@ void makeSecondOrder(std::vector<TH1*> & histos, SparseIntegrator * norm, Sparse
 	}
 	histos.clear();
 	
-	norm->link();
-	sumX->link();
-	sumX2->link();
+	/// norm->link();
+	/// sumX->link();
+	/// sumX2->link();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -283,29 +282,22 @@ SecondOrderModelBuilder::SecondOrderModelBuilder(AbsModel::type_t type,
 	}
 	integN->scale(1./norm_);
 	
-	// norm_ = 1.;
-	/// THnSparse * hsparseRed = hsparse_->Projection(nm1.size(),&nm1[0],"A");
-	//// THnSparse * hsparseX = hsparse_->Projection(nm1.size(),&nm1[0],"A");
-	//// THnSparse * hsparseX2= hsparse_->Projection(nm1.size(),&nm1[0],"A");
-	
-	///// THnSparse * hsparse = (THnSparse*)hsparse_->Clone();
-	///// makeSecondOrder( hsparse, hsparseN, hsparseX, hsparseX2 );
-	///// delete hsparse;
-	///// makeSecondOrder( hsparse, hsparseRed, integN, integX, integX2 );
 	makeSecondOrder( histos, integN, integX, integX2 );
 	delete hsparseRed;
 
 	converterN_  = integN;
 	converterX_  = integX;
 	converterX2_ = integX2;
-	std::cout << "SecondOrderModelBuilder integration " << norm_ << " " <<  hsparse_->GetWeightSum() << " " << integN->getIntegral(&xmin[0]) << std::endl;
+	assert( norm_ == hsparse_->GetWeightSum() );
+	std::cout << "SecondOrderModelBuilder " << name 
+		  << " normalization: " << norm_ 
+		  << " sumW: " << integN->getIntegral(&xmin[0]) 
+		  << " sumWX: " << integX->getIntegral(&xmin[0]) 
+		  << " sumWX2: " << integX2->getIntegral(&xmin[0]) 
+		  << " pdf normalization: " << integN->getIntegral(&xmin[0]) 
+		  << " number of (non-empty) bins: " << integN->size() 
+		  << std::endl;
 	
-	//// SparseIntegrator * integ = new SparseIntegrator(hsparseN,1./norm_);
-	//// std::cout << "SecondOrderModelBuilder integration " << norm_ << " " <<  hsparse_->GetWeightSum() << " " << integ->getIntegral(&xmin[0]) << std::endl;
-	//// //// integ->print(std::cout);
-	//// converterN_  = integ;
-	//// converterX_  = new SparseIntegrator(hsparseX);
-	//// converterX2_ = new SparseIntegrator(hsparseX2);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -561,10 +553,14 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 	std::vector<std::pair<std::string,RooAbsData*> >catData;
 	std::vector<RooRealVar *> normsToFix;
 	
+	if( debug_ ) {
+		std::cout << "\n---------------------------------------------" << std::endl;
+		std::cout << "Num. of categories: " << ncat << " num. of subcategories: " << nSubcats_ << std::endl;
+	}
 	/// WARNING: assuming that signal and background pdfs objects don't change for a given category
 	for(int icat=0.; icat<ncat; ++icat) {
 		if( debug_ ) {
-			std::cout << "cat " << icat << " ";
+			std::cout << "\nCategory: " << icat << " event yields\n";
 		}
 		if( nSubcats_*icat >= asimovs.size() ) {
 			for(int iSubcat = 0; iSubcat < nSubcats_; iSubcat++){
@@ -572,7 +568,7 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 			}
 		}
 		
-		bool buildPdf = ( icat >= pdfs.size() );
+		bool buildPdf = ( nSubcats_*icat >= pdfs.size() );
 		std::vector<RooArgList> lpdfs(nSubcats_), bpdfs(nSubcats_);
 		
 		std::vector<double> ntot(nSubcats_, 0.);
@@ -584,7 +580,7 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 				return 1e+5;
 			}
 			if( debug_ ) {
-				std::cout << sig[iSig]->name() << ": " << sig[iSig]->getCategoryYield(icat) << " ";
+				std::cout << "    " << sig[iSig]->name() << " (subcat " << iSubcat << "): " << sig[iSig]->getCategoryYield(icat) << "\n" ;
 			}
 			/// std::cout << sig[iSig]->getCategoryPdf(icat)->expectedEvents(0) 
 			/// 	  << " " << sig[iSig]->getCategoryYield(icat) << std::endl;
@@ -596,7 +592,7 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 			size_t iSubcat = iBkg % nSubcats_;
 			ntot[iSubcat] += bkg[iBkg]->getCategoryYield(icat);
 			if( debug_ ) {
-				std::cout << bkg[iBkg]->name() << " " << bkg[iBkg]->getCategoryYield(icat) << " ";
+				std::cout << "    " << bkg[iBkg]->name() << " (subcat " << iSubcat << "): " << bkg[iBkg]->getCategoryYield(icat) << "\n";
 			}
 			/// std::cout << bkg[iBkg]->getCategoryPdf(icat)->expectedEvents(0) 
 			/// 	  << " " << bkg[iBkg]->getCategoryYield(icat) << std::endl;
@@ -615,6 +611,7 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 		}
 
 		for(int iSubcat = 0; iSubcat < nSubcats_; iSubcat++){
+			//// std::cout << "Throwing Asymov " << iSubcat << " " << nSubcats_*icat+iSubcat<< " " << ntot[iSubcat] << " " <<  &asimovs[nSubcats_*icat+iSubcat] << " " <<  &pdfs[nSubcats_*icat+iSubcat] << std::endl;
 			throwAsimov( ntot[iSubcat], &asimovs[nSubcats_*icat+iSubcat], &pdfs[nSubcats_*icat+iSubcat], sig[0]->getX() );
 			roocat.defineType(Form("cat_%d_%d",icat,iSubcat));
 			//// roosim.addPdf( pdfs[nSubCats_*icat+iSubcat], Form("cat_%d_%d",icat,iSubcat) );

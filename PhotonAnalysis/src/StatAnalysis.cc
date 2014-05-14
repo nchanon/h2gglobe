@@ -2653,9 +2653,15 @@ void StatAnalysis::fillOpTree(LoopAll& l, const TLorentzVector & lead_p4, const 
     l.FillTree("hoe2", l.pho_hoe[diphoton_index.second]);
     //l.FillTree("conv1", (int)l.pho_isconv[diphoton_index.first]);
     //l.FillTree("conv2", (int)l.pho_isconv[diphoton_index.second]);
-    
-    l.FillTree("sigmaEoE1", (float)l.pho_regr_energyerr[diphoton_index.first]/(float)l.pho_regr_energy[diphoton_index.first]);
-    l.FillTree("sigmaEoE2", (float)l.pho_regr_energyerr[diphoton_index.second]/(float)l.pho_regr_energy[diphoton_index.second]);
+
+	
+    l.FillTree("stdSigmaEoE1", massResolutionCalculator->leadRelPhotonResolution() );
+    l.FillTree("stdSigmaEoE2", massResolutionCalculator->subleadRelPhotonResolution() );
+    l.FillTree("stdSigmaMrvoM", (float)massResolutionCalculator->relMassResolutionEonly());
+    l.FillTree("decorrSsigmaEoE1", massResolutionCalculator->decorrLeadRelPhotonResolution() );
+    l.FillTree("decorrSsigmaEoE2", massResolutionCalculator->decorrSubleadRelPhotonResolution() );
+    l.FillTree("decorrSigmaMrvoM", (float)massResolutionCalculator->decorrRelMassResolutionEonly());
+
     l.FillTree("ptoM1", (float)lead_p4.Pt()/mass);
     l.FillTree("ptoM2", (float)sublead_p4.Pt()/mass);
     l.FillTree("isEB1", (int)l.pho_isEB[diphoton_index.first]);
@@ -2853,7 +2859,7 @@ void StatAnalysis::fillOpTree(LoopAll& l, const TLorentzVector & lead_p4, const 
         std::vector<int> & vtxlist = l.vtx_std_ranked_list->at(diphoton_id);
         l.FillTree("sigmaMrvoM", (float)sigmaMrv);
         l.FillTree("sigmaMwvoM", (float)sigmaMwv);
-        
+	
         //if (l.itype[l.current] == 3) {
         //    Int_t bin = weightHist->FindBin((float)Higgs.Pt());
         //    Float_t myweight = weightHist->GetBinContent(bin);
