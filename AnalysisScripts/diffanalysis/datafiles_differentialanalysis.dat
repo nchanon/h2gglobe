@@ -1,5 +1,7 @@
 intL=19715. histfile=/store/user/amarini/HGG/CiC/DiffAnaWorkSpaces/%(label)s/CMS-HGG.root output=eventsList.txt sqrtS=8
 
+#setdefault var:pToMscaled
+
 #
 # Data
 #
@@ -81,10 +83,7 @@ inputBranches TTVH_analysis_input.dat
 inputBranches gp_only_input.dat
 
 plotvariables diffanalysis/differentialnalysis_plotvariables.dat
-#treevariables common/unbinned_datacard_trees.dat
-#treevariables massfac_mva_binned/treevariables_optree.dat
-#treevariables massfac_mva_binned/treevariables_optree_differential.dat
-treevariables diffanalysis/treevariables_optree_differential.dat
+treevariables massfac_mva_binned/treevariables_optree.dat
 cuts jetanalysis/cuts_vbfcutb.dat
 
 ## define analyses to run
@@ -95,4 +94,4 @@ cuts jetanalysis/cuts_vbfcutb.dat
 ##
 ## analyzer PhotonAnalysis photonanalysis.dat
 #analyzer StatAnalysis photonanalysis.dat analysis_settings.dat statanalysis.dat jetanalysis/cutbvbftag.dat nPtOverMCategories=1 differentialanalysis/differentialnalysis.dat saveDatacardTrees_=0 dumpAscii=0 dumpMcAscii=0 scaleClusterShapes=1 scaleR9Only=1 scaleR9ForCicOnly=1 fillOptTree=1
-analyzer UnfoldAnalysis photonanalysis.dat analysis_settings.dat statanalysis.dat jetanalysis/cutbvbftag.dat nPtOverMCategories=1 diffanalysis/differentialnalysis.dat saveDatacardTrees_=0 dumpAscii=0 dumpMcAscii=0 scaleClusterShapes=1 scaleR9Only=1 scaleR9ForCicOnly=1 fillOptTree=1 diffanalysis/vars/%(var).dat diffanalysis/unfolding.dat
+analyzer UnfoldAnalysis photonanalysis.dat analysis_settings.dat statanalysis.dat jetanalysis/cutbvbftag.dat nPtOverMCategories=1 diffanalysis/differentialnalysis.dat saveDatacardTrees_=0 dumpAscii=0 dumpMcAscii=0 scaleClusterShapes=1 scaleR9Only=1 scaleR9ForCicOnly=1 fillOptTree=1 diffanalysis/vars/%(var)s.dat diffanalysis/unfolding.dat

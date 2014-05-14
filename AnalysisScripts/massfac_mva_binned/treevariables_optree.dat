@@ -23,8 +23,15 @@ type=2 name=MET_phi
 
 type=2 name=sigmaMrvoM
 type=2 name=sigmaMwvoM
-type=2 name=sigmaEoE1
-type=2 name=sigmaEoE2
+
+type=2 name=stdSigmaEoE1
+type=2 name=stdSigmaEoE2
+type=2 name=stdSigmaMrvoM
+
+type=2 name=decorrSigmaEoE1
+type=2 name=decorrSigmaEoE2
+type=2 name=decorrSigmaMrvoM
+
 type=2 name=ptoM1
 type=2 name=ptoM2
 type=2 name=vtxprob
@@ -173,5 +180,13 @@ type=2 name=dRphojet2
 type=2 name=njets10
 type=2 name=njets15
 type=2 name=njets20
+
+type=2 name=diffAna_Njets
+type=2 name=diffAna_LeadJetpT
+type=2 name=diffAna_Mjj
+type=2 name=diffAna_dEtajj
+type=2 name=diffAna_Zepp
+type=2 name=diffAna_dPhijj
+type=2 name=diffAna_dPhiggjj
 
 type=2 name=bdt_combined

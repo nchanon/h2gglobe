@@ -102,7 +102,7 @@ if __name__  == "__main__":
 			continue
 
 		line = line.replace("%(label)s",options.label)
-		line = line.replace("%(var)",options.var)
+		line = line.replace("%(var)s",options.var)
 
 		if "histfile" in line:
 			cfg.read_histfile(line)
