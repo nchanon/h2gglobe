@@ -298,7 +298,7 @@ class configProducer:
   # File Parsers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   def read_dat_plotvariables(self,f): 
-    print "Parsing of the plotting variables dat"
+    print "Parsing of the plotting variables dat",f
     self.plotvar_.clear()
     self.read_file(f)
     map_dict = { "htyp" : int, "plot": int, "ncat": int, "xbins" : int,  "ybins": int, "xmin": float, "xmax": float, "ymin": float, "ymax": float, "name": str, "xaxis":str, "yaxis":str };
