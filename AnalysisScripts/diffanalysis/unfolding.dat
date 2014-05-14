@@ -5,9 +5,12 @@ scaleClusterShapes=1
 scaleR9Only=1 
 scaleR9ForCicOnly=1 
 fillOptTree=0 
-JetPtForDiffAnalysis=30 
+JetPtForDiffAnalysis=25
 PhoEtaDiffAnalysis=2.5 
-PhoPtDiffAnalysis=40,30 
+
+#PhoPtDiffAnalysis=40,30 
+PhoPtDiffAnalysis=0.3333,0.25
+
 PhoIsoDRDiffAnalysis=0.3 
 JetPhoDRDiffAnalysis=0.3 
 JetEtaForDiffAnalysis=2.5
