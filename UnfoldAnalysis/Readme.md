@@ -53,27 +53,27 @@ Signal fit is painful, because we must check that fits converges everywhere.
 * go in the signal fitting directory:
 * The Categories are the nBins*nCatsPerBin, while the last Bin is nBins (ie, from 0<= to <=nBins)  
 
-~~bash
+~~~
 cd SimultaneousSignalFitting
 ./bin/calcPhotonSystConsts -i ../CMS-HGG_syst.root -m 125 -n 20 -p `echo Bin{0..5} | tr ' ' ','` -o dat/unfoldPhotonCatSyst.dat
 ./bin/SignalFit -i ../CMS-HGG_sig.root -d dat/unfoldAnalysis.dat -s dat/unfoldPhotonCatSyst.dat -L 120 -H 130 --nCats 20 --procs `echo Bin{0..5} | tr ' ' ',' `
-~~
+~~~
 
 * **unfoldPhotonCatSyst.dat**: before fitting, check if there are some inf or nan inside. (Very likely they come from null histograms so they can be set to 0)       
 * **unfoldAnalysis.dat**: this guy must be optimized ! 
        * start w/ something reasonable (diagonal 4 3) off-diagonal-by-one (2 2) and others from the diagonal bin
 
-~~
+~~~
 python h2gglobe/UnfoldAnalysis/Macros/makeDiagonalDat.py --help
-~~
+~~~
 * 
        * try to fit 
        * check the plots, are they ok ? 
        * check the ws. (if there are no complains its fine, pdfs are >0, otherwise combine will not be able to produce sensible results)
 
-~~
+~~~
 python checkSignalWs.py -s filename -n bins -c cats -S 0.5 
-~~
+~~~
 
 
 ###Background envelope
@@ -124,7 +124,7 @@ so you can go bach there and re-attach it in case you forgot where it was.
 
 * **mail**: you can use them to tell you when something is done (in a screen for example). No jobs in batch-queues, like:
 
-~~~bash
+~~~
 UnfoldAnalysis/Macros/checkCmdMail.sh:
 while sleep 10m ; do 
    if (  bjobs   | grep -v JOBID | wc -l | grep '^0$'  ) ; then
