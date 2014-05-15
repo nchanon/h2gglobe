@@ -103,7 +103,7 @@ class CategoryOptimizer
 public:
 	CategoryOptimizer( ROOT::Math::Minimizer * minimizer, int ndim) : 
 		minimizer_(minimizer), ndim_(ndim), strategy_(2), scan_(-1), scanBoundaries_(true), tranformOrtho_(false),
-		addConstraint_(false), telescopicBoundaries_(true), floatFirst_(false), 
+		addConstraint_(false), telescopicBoundaries_(true), floatFirst_(false), floatLast_(true), 
 		refitLast_(false), speed_(0.5), transformations_(0), inv_transformations_(0), dimnames_(ndim_) {};
 	
 	void addSignal(AbsModelBuilder * sig, bool defineTransform=false) { 
@@ -118,6 +118,7 @@ public:
 		addConstraint_ = x; minConstraint_ = minConstraint; floatingConstraint_=floating;
 	};
 	void floatFirst(bool x=true) { floatFirst_ = x; };
+	void floatLast(bool x=true) { floatLast_ = x; };
 	void refitLast(bool x=true) { refitLast_ = x; };
 	void absoluteBoundaries(bool x=true) { telescopicBoundaries_ = !x; };
 	void setFigureOfMerit(AbsFomProvider * fom) { fom_ = fom; };
@@ -163,7 +164,7 @@ private:
 	
 	std::map<int, std::pair<double,std::vector<double> > > minima_;
 	
-	bool addConstraint_, telescopicBoundaries_, floatingConstraint_, floatFirst_, refitLast_;
+	bool addConstraint_, telescopicBoundaries_, floatingConstraint_, floatFirst_, floatLast_, refitLast_;
 	double minConstraint_, speed_;
 	std::vector<std::pair<std::string, std::vector<double> > > orthocuts_;
 	

@@ -41,7 +41,7 @@ class configProducer:
   def __init__(self,Ut,conf_filename,Type,njobs=-1,jobId=0,makehistos=True,
                search_path="common:reduction:baseline:massfac_mva_binned:full_mva_binned:jetanalysis:photonjet:spinanalysis",
                label="",mountEos=False,
-               files=[],histfile="",debug=False):
+               files=[],histfile="",debug=False, macros=None):
 
     PYDEBUG=debug 
     print "h2gglobe: step %d, with Config %s. Number of jobs %d. Running job %d" %(Type,conf_filename,njobs,jobId)
@@ -55,6 +55,9 @@ class configProducer:
     self.nf_ 	= [0]
 
     self.expdict_ = {"label":label}
+    if macros:
+        for m in macros:
+            self.set_macro( *m.split(":") )
     self.toprint_ = { str(self.ut_) : set() }
     self.analyzers_ = []
     
@@ -82,7 +85,7 @@ class configProducer:
     self.tmac = []
 
     self.member_lines=[]
-
+    
     ## search path
     mydir = os.path.dirname(os.path.realpath(__file__))
     basedir = os.path.dirname(mydir)
@@ -126,7 +129,9 @@ class configProducer:
           ret,out=commands.getstatusoutput("fusermount -u %s" % mp)
           
           
-  def set_macro(self,var,val):
+  def set_macro(self,var,val,force=True):
+      if var in self.expdict_ and not force:
+          return
       self.expdict_[var]=val % self.expdict_
 
   def print_members(self):
@@ -195,12 +200,13 @@ class configProducer:
           else:
             comment_status = True
         elif line.startswith("#setmacro "):
-          print line
           toks = [ t.lstrip().rstrip() for t in line.replace("#setmacro","").split(":") if t != "" ]
-          print toks
           if( len(toks)==2 ):
               self.set_macro(toks[0],toks[1])
-          print self.expdict_
+        elif line.startswith("#setdefault "):
+          toks = [ t.lstrip().rstrip() for t in line.replace("#setdefault","").split(":") if t != "" ]
+          if( len(toks)==2 ):
+              self.set_macro(toks[0],toks[1],False)
           self.conf_.comments+=line
         elif not comment_status and not line.startswith("#"):
           lines.append(line % self.expdict_)

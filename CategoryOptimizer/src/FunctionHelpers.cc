@@ -1,5 +1,7 @@
 #include "../interface/FunctionHelpers.h"
 
+using namespace std;
+
 // ------------------------------------------------------------------------------------------------
 TH1 * integrate1D(TH1 * h, bool normalize) {
 	TH1 * ret= (TH1*)h->Clone( Form("%s_cdf", h->GetName() ) );
@@ -30,59 +32,69 @@ TH2 * integrate2D(TH2 * h, bool normalize) {
 }
 
 // ------------------------------------------------------------------------------------------------
-HistoConverter * cdfInv(TH1 * h,double min, double max)
+TF1 * GraphToTF1::asTF1(TString name)
 {
-	TH1 * hi = integrate1D(h);
-	TGraph g(hi);
-	TGraph ginv(g.GetN());
-	double last = 1.;
-	int ilast = 0;
-	for(int ip=0; ip<g.GetN(); ++ip) {
-		double x = g.GetX()[ip];
-		double y = g.GetY()[ip];
-		/// std::cout << x << " " << y << std::endl;
-		ginv.SetPoint(ip,1.-y,x);
-		if( y < last ) { 
-			last = y;
-			ilast = ip;
-			if( ilast == 0 && ip > 1 ) {
-				min = x;
-			}
-		}
-	}
-	max = g.GetX()[ilast];
-	
-	HistoConverter * invg = new LinGraphToTF1(Form("%s_inv",hi->GetName()), &ginv, 0., min, 1., max );
-	std::cout << min << " " << max << " " << invg->eval(max) << " " << invg->eval(g.GetX()[g.GetN()-1]) << " " << invg->eval(1.) << std::endl;
-	delete hi;
-	return invg;
+	return new TF1(name,this,xmin_,xmax_,0);
 }
 
 // ------------------------------------------------------------------------------------------------
-HistoConverter * cdf(TH1 * h,double min, double max)
+DecorrTransform::DecorrTransform(TH2 * histo, float ref, bool doRatio) : doRatio_(doRatio)
 {
-	TH1 * hi = integrate1D(h);
-	TGraph g(hi);
-	TGraph ginv(g.GetN());
-	double last = 1.;
-	int ilast = 0;
-	for(int ip=0; ip<g.GetN(); ++ip) {
-		double x = g.GetX()[ip];
-		double y = g.GetY()[ip];
-		if( y < last ) { 
-			last = y;
-			ilast = ip;
-			if( ilast == 0 && ip > 1 ) {
-				min = x;
-			}
+	refbin_ = histo->GetXaxis()->FindBin(ref);
+	hist_ = histo;
+	double miny = histo->GetYaxis()->GetXmin();
+	double maxy = histo->GetYaxis()->GetXmax();
+	for(int ii=0; ii<histo->GetNbinsX()+1; ++ii) {
+		TH1 * proj = histo->ProjectionY(Form("%s_%d",histo->GetName(),ii),ii,ii);
+		/// dirtr_.push_back(cdf<GraphToTF1>(proj,miny,maxy));
+		dirtr_.push_back(cdf(proj,miny,maxy));
+		if( ii == refbin_ ) {
+			/// invtr_ = cdfInv<GraphToTF1>(proj,miny,maxy);
+			invtr_ = cdfInv(proj,miny,maxy);
+			cout << invtr_->eval(0.) << " " << invtr_->eval(0.5)  << " " << invtr_->eval(1.) << endl;
+			
 		}
-		ginv.SetPoint(ip,x,1.-y);
+		delete proj;
 	}
-	max = g.GetX()[ilast];
-	
+}
 
-	HistoConverter * invg = new LinGraphToTF1(Form("%s_dir",hi->GetName()), &ginv, min, 0., max, 1. );
-	std::cout << min << " " << max << " " << invg->eval(1.-last) << " " << g.GetY()[g.GetN()-1] << " " << invg->eval(g.GetY()[g.GetN()-1]) << " " << invg->eval(1.) << std::endl;
-	delete hi;
-	return invg;
+// ------------------------------------------------------------------------------------------------
+double DecorrTransform::operator() (double *x, double *p)
+{
+	if( x[1] < -2.7 ) { return x[1]; }
+	double ret = x[1];
+	ret = invtr_->eval(getConverter(x[0])->eval(x[1]));
+	return (doRatio_?ret/x[1]:ret);
+}
+
+
+// ------------------------------------------------------------------------------------------------
+HistoConverter * DecorrTransform::clone() const
+{
+	return new DecorrTransform(*this);
+}
+
+// ------------------------------------------------------------------------------------------------
+WrapDecorr::WrapDecorr(DecorrTransform *tr) : tr_(tr) 
+{
+}
+
+// ------------------------------------------------------------------------------------------------
+double WrapDecorr::operator() (double *x, double *p)
+{
+	std::vector<double> xp(2);
+	xp[0] = p[0];
+	xp[1] = x[0];
+	return (*tr_)(&xp[0],0)-x[0];
+}
+
+// ------------------------------------------------------------------------------------------------
+HistoConverter * WrapDecorr::clone() const
+{
+	return new WrapDecorr(*this);
+}
+
+// ------------------------------------------------------------------------------------------------
+WrapDecorr::~WrapDecorr()
+{
 }
