@@ -1,4 +1,5 @@
-intL=19715. histfile=/store/user/amarini/HGG/DiffAnalysis/%(label)s/syst/CMS-HGG.root output=eventsList.txt sqrtS=8
+intL=19715. histfile=/store/group/phys_higgs/cmshgg/diffanalysis/ws/%(label)s/syst/CMS-HGG.root output=eventsList.txt sqrtS=8
+#intL=19715. histfile=/store/user/amarini/HGG/DiffAnalysis/%(label)s/syst/CMS-HGG.root output=eventsList.txt sqrtS=8
 
 #
 # Signal
