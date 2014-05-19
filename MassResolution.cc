@@ -283,8 +283,13 @@ double MassResolution::decorrRelMassResolutionEonly() {
 }
 
 double MassResolution::decorrLeadRelPhotonResolution(){
-  return lead_Eres_decorr;
+  bool sphericalLeadPhoton_=leadPhoton->isSphericalPhoton();
+  return getRelPhotonResolution(lead_Eres_decorr, *leadPhoton);
+  //return lead_Eres_decorr;
 }
+
 double MassResolution::decorrSubleadRelPhotonResolution(){
-  return sublead_Eres_decorr;
+	  bool sphericalSubleadPhoton_=subleadPhoton->isSphericalPhoton();
+	  return getRelPhotonResolution(sublead_Eres_decorr,*subleadPhoton);
+  //return sublead_Eres_decorr;
 }

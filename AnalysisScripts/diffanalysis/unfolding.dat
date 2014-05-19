@@ -4,7 +4,7 @@ dumpMcAscii=0
 scaleClusterShapes=1 
 scaleR9Only=1 
 scaleR9ForCicOnly=1 
-fillOptTree=0 
+fillOptTree=1
 JetPtForDiffAnalysis=25
 PhoEtaDiffAnalysis=2.5 
 
