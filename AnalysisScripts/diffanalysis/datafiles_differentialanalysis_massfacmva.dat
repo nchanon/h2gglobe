@@ -1,6 +1,5 @@
-intL=19715. histfile=/store/user/amarini/HGG/DiffAnaWorkSpaces/%(label)s/CMS-HGG.root output=eventsList.txt sqrtS=8
-#intL=19715. histfile=test_CMS-HGG.root output=eventsList.txt sqrtS=8
-#intL=19715. histfile=/store/user/amarini/CMS-HGG/%(label)s/CMS-HGG.root output=eventsList.txt
+intL=19715. histfile=/store/group/phys_higgs/cmshgg/diffanalysis/ws/%(label)s/CMS-HGG.root output=eventsList.txt sqrtS=8
+#intL=19715. histfile=/store/user/amarini/HGG/DiffAnaWorkSpaces/%(label)s/CMS-HGG.root output=eventsList.txt sqrtS=8
 
 #setdefault var:pToMscaled
 
