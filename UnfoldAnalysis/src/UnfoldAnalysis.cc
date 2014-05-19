@@ -357,7 +357,7 @@ if(!isToBook) return r;
 int g1,g2;
 int bin=computeGenBin(l,cur_type,g1,g2);
 
-if (bin>0 && doUnfoldHisto && g1>0 && g2>0 ){
+if (bin>=0 && doUnfoldHisto && g1>=0 && g2>=0 ){
 	float HiggsPt= ( *((TLorentzVector*)l.gp_p4->At(g1)) + *((TLorentzVector*)l.gp_p4->At(g2)) ).Pt();
 	// VERY VERBOSE
 	//cout<<" Going to Fill: << Bin:"<<bin<<" mass:"<<l.normalizer()->GetMass(cur_type)<<" weight:"<<(float)l.sampleContainer[l.current_sample_index].weight() * PtReweight(HiggsPt,cur_type) <<endl;
