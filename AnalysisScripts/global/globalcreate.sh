@@ -31,7 +31,7 @@ wait
 for VAR in $VARS ; do
 
 ./mk_fitter.py -i diffanalysis/datafiles_differentialanalysis_massfacmva.dat -n 50 -v ${VAR} --onlySig  -l ${LABEL} -o ${USER}_${LABEL}_${VAR}_Sig  &
-./mk_fitter.py -i diffanalysis/datafiles_differentialanalysis_massfacmva_systs.dat -n 10 -v ${VAR} --onlySig  -l Syst_${LABEL} -o ${USER}_${LABEL}_${VAR}_Syst  &
+./mk_fitter.py -i diffanalysis/datafiles_differentialanalysis_massfacmva_systs.dat -n 30 -v ${VAR} --onlySig  -l Syst_${LABEL} -o ${USER}_${LABEL}_${VAR}_Syst  &
 ./mk_fitter.py -i diffanalysis/datafiles_differentialanalysis_massfacmva.dat -n 50 -v ${VAR} --onlyData -l ${LABEL} -o ${USER}_${LABEL}_${VAR}_Data  &
 ## BKG ##
 #./mk_fitter.py -i massfac_mva_binned/datafiles_massfacmva_legacy.dat -n 50  --onlyBkg -l legacy_paper_8TeV_${LABEL} -o ${USER}_mva_8TeV_Bkg  &
