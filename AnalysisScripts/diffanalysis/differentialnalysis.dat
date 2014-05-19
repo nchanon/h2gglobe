@@ -45,3 +45,11 @@ runJetsForSpin=0
 
 sigEoEtransformFile=aux/sigetrans_v1.root
 doSigEoEtransform=1
+
+saveDatacardTrees_=0 
+dumpAscii=0 
+dumpMcAscii=0 
+scaleClusterShapes=1 
+scaleR9Only=1 
+scaleR9ForCicOnly=1 
+fillOptTree=0 
