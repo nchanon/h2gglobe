@@ -83,6 +83,29 @@ Background Fit will create the ws with the envelope
 
        ./bin/fTest -i ../CMS-HGG_data.root -c nCat --saveMultiPdf ../CMS-HGG_multipdf.root
 * save somewhere (or set them in the fTest command) the plots produced directory *plots*, and the dat file produced *dat/fTest.dat* because these will be used later for check and bias studies.
+* The bias studies are run w/ the program
+
+~~~
+./bin/Bias
+~~~
+* Trough the scripts in 
+
+~~~
+python scripts/sub_coverage_jobs.py 
+-s CMS-HGG_Sig.root # not signafit
+-b CMS-HGG_Data.root
+-t 50 # n. of toys
+-c 0 # one for each category 0,1,2 ...
+--nBins 7 
+-d dat/fTest.dat # the one produced by the multipdf fits
+-e /store/user/amarini/HGG/Bias
+-j 0 
+-n 100 # nJobs
+-o jobs #outputdir
+-L 0 -H 2 -S .1 # range and step of mu 
+python scripts/make_hists_from_raw_files.py --eosWalk=100 --expectSignal=1  -D /store/user/amarini/HGG/Bias/jobs/cat0_mu1.0/ --runSpecificFiles='0' -o jobs/cat0_mu1.0.root
+~~~
+
 
 ###Miscellaneous
 * **screen**: a very useful tool. It spawn shell(s) that are kept alive running on the background of the machine, and you can re-attach them.
