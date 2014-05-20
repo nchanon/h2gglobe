@@ -2129,6 +2129,9 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
 	    if (VarDef=="LeadJetpT")	{
 		varValue=DiffAna_LeadJetpT;
 	    }
+        if (VarDef=="dRapidityHiggsJet"){
+        varValue=DiffAna_dRapidityHiggsJet;
+        }
 	    if (njet>=2) {
 		if (VarDef=="Mjj")   {
 		    varValue=DiffAna_Mjj;

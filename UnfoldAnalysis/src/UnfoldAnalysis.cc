@@ -318,6 +318,15 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		else
 			var = -1;
 	}
+	else if (VarDef == "dRapidityHiggsJet")
+	{
+		if (nJets>0)
+		{
+			TLorentzVector j1=*((TLorentzVector*)l.genjet_algo1_p4->At(jets.begin()->second));
+			var=fabs(Hgg.Rapidity() -j1.Rapidity()); 
+		}
+	
+	}
 	else assert( 0  ); //variable not found
 
 	int bin=is_bkg;
