@@ -61,7 +61,7 @@ get_git f5cf561  https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git
 if [[ $CMSSW_VERSION == CMSSW_6_* ]]; then 
     #get_git hggpapertraining_regV6_7_8_tag0 https://github.com/bendavid/GBRLikelihood.git HiggsAnalysis/GBRLikelihood
     get_git hggdifferentialV1 https://github.com/bendavid/GBRLikelihood.git HiggsAnalysis/GBRLikelihood
-    get_git hggdifferentialV1 https://github.com/bendavid/GBRLikelihoodEGTools.git HiggsAnalysis/GBRLikelihoodEGTools
+    get_git hggdifferentialV2 https://github.com/bendavid/GBRLikelihoodEGTools.git HiggsAnalysis/GBRLikelihoodEGTools
 else 
     get_git hggpaperV5 https://github.com/bendavid/GBRLikelihood.git HiggsAnalysis/GBRLikelihood
 fi

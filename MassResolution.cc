@@ -12,9 +12,9 @@ See MassResolution.h for instructions
 */
 
 MassResolution::MassResolution(){
-
-	lead_Eres_decorr = 999.; // extremely high if not setted
-	sublead_Eres_decorr = 999.;
+  
+  lead_Eres_decorr = 999.; // extremely high if not setted
+  sublead_Eres_decorr = 999.;
 }
 
 void MassResolution::Setup(LoopAll &l, PhotonReducedInfo *leadInfo, PhotonReducedInfo *subleadInfo,int vtx_index,EnergySmearer::energySmearingParameters eSmearPars, int nR9Categories, int nEtaCategories, double beamspotSigma_in, bool usethisvtx) {
@@ -282,14 +282,21 @@ double MassResolution::decorrRelMassResolutionEonly() {
   return 0.5*TMath::Sqrt((lead_sig*lead_sig)+(sublead_sig*sublead_sig));
 }
 
+double MassResolution::decorrLeadRelPhotonResolutionNoSmear(){
+  return lead_Eres_decorr;
+}
+
+double MassResolution::decorrSubleadRelPhotonResolutionNoSmear(){
+  return sublead_Eres_decorr;
+}
+
 double MassResolution::decorrLeadRelPhotonResolution(){
   bool sphericalLeadPhoton_=leadPhoton->isSphericalPhoton();
-  return getRelPhotonResolution(lead_Eres_decorr, *leadPhoton);
+  return getRelPhotonResolution(decorrLeadRelPhotonResolutionNoSmear(), *leadPhoton);
   //return lead_Eres_decorr;
 }
 
 double MassResolution::decorrSubleadRelPhotonResolution(){
-	  bool sphericalSubleadPhoton_=subleadPhoton->isSphericalPhoton();
-	  return getRelPhotonResolution(sublead_Eres_decorr,*subleadPhoton);
-  //return sublead_Eres_decorr;
+  bool sphericalSubleadPhoton_=subleadPhoton->isSphericalPhoton();
+  return getRelPhotonResolution(decorrSubleadRelPhotonResolutionNoSmear(),*subleadPhoton);
 }

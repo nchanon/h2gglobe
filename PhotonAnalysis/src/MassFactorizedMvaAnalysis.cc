@@ -934,18 +934,20 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
         bool isEBEB  = fabs(lead_p4.Eta() < 1.4442 ) && fabs(sublead_p4.Eta()<1.4442);
 
-        category = GetBDTBoundaryCategory(diphobdt_output,isEBEB,VBFevent);
-	if (doMvaForDifferentialAnalysis) category = GetSigmaMoMBoundaryCategory(sigmaMrv);
-        //cout<<"SMoM or bdt cat="<<category<<endl; //DEBUG
-	
-        if (doDiphoMvaUpFront || diphobdt_output>=bdtCategoryBoundaries.back()) { 
-            computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt(), Higgs.M(), diphobdt_output, true); 
-        }
-
-	if (doDifferentialAnalysis && doMvaForDifferentialAnalysis) {
-        //cout<<"Before Diff variables: category "<<category<<endl;//DEBUG
+	if (doDifferentialAnalysis) { 
+	    category = GetSigmaMoMBoundaryCategory(sigmaMrv);
+	    
+	    //cout<<"Before Diff variables: category "<<category<<endl;//DEBUG
 	    computeDifferentialVariableCategory(l, category, lead_p4, sublead_p4, diphoton_id, &smeared_pho_energy[0]);
+	} else {
+	    category = GetBDTBoundaryCategory(diphobdt_output,isEBEB,VBFevent);
+	    //cout<<"SMoM or bdt cat="<<category<<endl; //DEBUG
+	    
+	    if (doDiphoMvaUpFront || diphobdt_output>=bdtCategoryBoundaries.back()) { 
+		computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt(), Higgs.M(), diphobdt_output, true); 
+	    }
 	}
+	
 
         if (fillOptTree) {
             std::string name;
