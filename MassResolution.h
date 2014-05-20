@@ -90,7 +90,20 @@ class MassResolution {
     
     double leadPhotonResolutionNoSmear() { return leadRelPhotonResolutionNoSmear() * leadPhoton->corrEnergy(); };
     double subleadPhotonResolutionNoSmear() { return subleadRelPhotonResolutionNoSmear() * subleadPhoton->corrEnergy(); };
+
+    double decorrLeadRelPhotonResolutionNoSmear();
+    double decorrSubleadRelPhotonResolutionNoSmear();
+    
+    double decorrLeadRelPhotonResolution();
+    double decorrSubleadRelPhotonResolution();
+    
+    double decorrRelMassResolutionCorrVtx();
+    double decorrRelMassResolutionWrongVtx();
+    double decorrRelMassResolutionEonly() ;
   
+  public:
+    string sigEoEtransformFile;
+
   private:
     double getRelPhotonResolution(double, const PhotonReducedInfo &);
     
@@ -136,13 +149,6 @@ class MassResolution {
     SigETransform  _sigeTransform;
     double lead_Eres_decorr;
     double sublead_Eres_decorr;
-  public:
-    string sigEoEtransformFile;
-    double decorrLeadRelPhotonResolution();
-    double decorrSubleadRelPhotonResolution();
-    double decorrRelMassResolutionCorrVtx();
-    double decorrRelMassResolutionWrongVtx();
-    double decorrRelMassResolutionEonly() ;
 
 };
 

@@ -2658,8 +2658,8 @@ void StatAnalysis::fillOpTree(LoopAll& l, const TLorentzVector & lead_p4, const 
     l.FillTree("stdSigmaEoE1", massResolutionCalculator->leadRelPhotonResolution() );
     l.FillTree("stdSigmaEoE2", massResolutionCalculator->subleadRelPhotonResolution() );
     l.FillTree("stdSigmaMrvoM", (float)massResolutionCalculator->relMassResolutionEonly());
-    l.FillTree("decorrSsigmaEoE1", massResolutionCalculator->decorrLeadRelPhotonResolution() );
-    l.FillTree("decorrSsigmaEoE2", massResolutionCalculator->decorrSubleadRelPhotonResolution() );
+    l.FillTree("decorrSigmaEoE1", massResolutionCalculator->decorrLeadRelPhotonResolution() );
+    l.FillTree("decorrSigmaEoE2", massResolutionCalculator->decorrSubleadRelPhotonResolution() );
     l.FillTree("decorrSigmaMrvoM", (float)massResolutionCalculator->decorrRelMassResolutionEonly());
 
     l.FillTree("ptoM1", (float)lead_p4.Pt()/mass);
