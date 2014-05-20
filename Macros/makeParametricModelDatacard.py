@@ -21,6 +21,7 @@ parser.add_option("--globalScalesCorr",default="Geant4:0.0005",help="String list
 parser.add_option("--toSkip",default="",help="proc:cat which are to skipped e.g ggH:11,qqH:12 etc. (default: %default)")
 parser.add_option("--isCutBased",default=False,action="store_true")
 parser.add_option("--isSpinModel",default=False,action="store_true")
+parser.add_option("--isDiffAnalysis",help="is differential analysis nBins. (default=%default)",default=-1,type=int)
 parser.add_option("--isMultiPdf",default=False,action="store_true")
 parser.add_option("--isBinnedSignal",default=False,action="store_true")
 parser.add_option("--is2011",default=False,action="store_true")
@@ -39,6 +40,21 @@ r.gROOT.ProcessLine(".L ../libLoopAll.so")
 combProc = {'ggh':'ggH','vbf':'qqH','wzh':'VH','wh':'WH','zh':'ZH','tth':'ttH','bkg_mass':'bkg_mass','gg_grav':'ggH_ALT','qq_grav':'qqbarH_ALT'}
 globeProc = {'ggH':'ggh','qqH':'vbf','VH':'wzh','WH':'wh','ZH':'zh','ttH':'tth','bkg_mass':'bkg_mass','ggH_ALT':'gg_grav','qqbarH_ALT':'qq_grav'}
 procId = {'ggH':0,'qqH':-1,'VH':-2,'WH':-2,'ZH':-3,'ttH':-4,'ggH_ALT':-5,'qqbarH_ALT':-6,'bkg_mass':1}
+
+#add for diffanalys
+doDiffAnalysis=False
+if options.isDiffAnalysis > 0: 
+	doDiffAnalysis=True
+	tmp_id={}
+	tmp_comb={}
+	tmp_globe={}
+	for iBin in range(0,options.isDiffAnalysis + 2):
+		tmp_id["Bin%d"%iBin]=-iBin
+		tmp_comb["Bin%d"%iBin]="Bin%d"%iBin
+		tmp_globe["Bin%d"%iBin]="Bin%d"%iBin
+	procId = dict( procId.items() + tmp_id.items() ) 
+	combProc = dict( combProc.items() + tmp_comb.items() ) 
+	globeProc = dict( globeProc.items() + tmp_globe.items() ) 
 
 # setup
 if options.is2011: sqrts=7
@@ -94,6 +110,21 @@ if options.isCutBased:
 		tthHadCat = [14]
 		tthCats = [13,14]
 		vhHadCat = [15]
+if doDiffAnalysis:
+	incCats = range(0,options.ncats)
+	dijetCats = []
+	muonCat = []
+	eleCat = []
+	tightLepCat = []
+	looseLepCat = []
+	metCat = []
+	tthLepCat = []
+	tthCats = []
+	vhHadCat = []
+	options.procs="Bin0"
+	for iBin in range(1,options.isDiffAnalysis+1):
+		options.procs+=",Bin%d"%iBin
+
 options.procs += ',bkg_mass'
 options.procs = [combProc[p] for p in options.procs.split(',')]
 options.toSkip = options.toSkip.split(',')
@@ -167,6 +198,10 @@ else:
 	if options.isSpinModel:
 		fileDetails['ggH_ALT'] 			= [sigFile,sigWS,'hggpdfsmrel_%dTeV_gg_grav_$CHANNEL'%sqrts]
 		fileDetails['qqbarH_ALT'] 			= [sigFile,sigWS,'hggpdfsmrel_%dTeV_qq_grav_$CHANNEL'%sqrts]
+
+if doDiffAnalysis:
+	for b in range(0,options.isDiffAnalysis+2):
+		fileDetails['Bin%d'%b]=[sigFile,sigWS,'hggpdfsmrel_%dTeV_Bin%d_$CHANNEL'%(sqrts,b)]
 
 # theory systematics arr=[up,down]
 # these come in specific types (as must be correlated with combination)
@@ -322,6 +357,11 @@ else:
 		puJetIdEff.append([0.031,0.035,0.024,0.024,0.010])
 		puJetIdEff.append([0.040,0.040,0.023,0.023,0.009])
 		puJetIdEff.append([0.010,0.010,0.009,0.009,0.009])
+
+if doDiffAnalysis:
+	vbfSysts={}
+	puJetIdEff=[]
+
 # check ok
 for systName, systVal in vbfSysts.items():
 	if not (len(systVal)==len(dijetCats)): sys.exit('Number of VBF categories not consistent with VBF syst values given')
@@ -843,7 +883,7 @@ printTheorySysts()
 printLumiSyst()
 printTrigSyst()
 printGlobeSysts()
-if not options.isSpinModel:
+if not options.isSpinModel and not doDiffAnalysis:
 	printVbfSysts()
 	printLepSysts()
 	printTTHSysts()
