@@ -2,4 +2,4 @@
 
 #VARS=pToMscaled pT
 VARS="pToMscaled Ygg CosThetaStar dPhi Njets"
-LABEL=v10
+LABEL=diffanalysis_v2
