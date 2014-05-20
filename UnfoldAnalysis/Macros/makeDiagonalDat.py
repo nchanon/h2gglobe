@@ -30,7 +30,9 @@ if __name__=="__main__":
 			   if iCat % (nBins) == iBin + 1: # super diaganol
 			   	offdiagonal += "Bin%d %d 2 2\n"%(iBin,iCat)
 			   else:
-			   	offdiagonal += "Bin%d %d 4 3 Bin%d %d\n"%(iBin,iCat,iBin,iCat % (nBins))
+				jBin=iCat%nBins
+				jCat=iCat/nBins
+			   	offdiagonal += "Bin%d %d 4 3 Bin%d %d\n"%(iBin,iCat,iBin, iBin+(jCat*nBins) )
 
 	   f.write("### BIN %d ###\n"%iBin)
 	   f.write(diagonal)
