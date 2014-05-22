@@ -1,5 +1,13 @@
 #Instructions for differential Analysis
 
+### Table of Contents
+- [Installation](#user-content-installation)
+- [Job creation and submission](#user-content-job-creation-and-submission)
+- [Signal Fit](#user-content-signal-fit)
+- [Background envelope](#user-content-background-envelope)
+- [Combination and Results](#user-content-combination-and-results)
+- [Miscellaneous](#user-content-miscellaneous)
+
 ###Installation
 * create a CMSSW\_6\_1\_X release
 * clone the repository and checkout the correct tag (the branch is *topic_diffAnalysisAndUnfolding* )
