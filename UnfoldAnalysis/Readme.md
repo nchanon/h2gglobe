@@ -6,7 +6,7 @@
 
         git clone git@github.com:amarini/h2gglobe  
         cd h2gglobe
-        git checkout diffanalysis_ws_v1
+        git checkout diffanalysis_ws_v2
 * compile the repository [slc5]  
 
         make -j 16
@@ -27,7 +27,7 @@
   variables name should match the one in diffanalysis/vars/*.dat
 
         VARS="pToMscaled"
-        LABEL="diffanalysis_v1"
+        LABEL="diffanalysis_v2"
 
 * create the jobs [this script calls mk_fitter, you can use it directly if you prefer]
 
@@ -106,6 +106,62 @@ python scripts/sub_coverage_jobs.py
 python scripts/make_hists_from_raw_files.py --eosWalk=100 --expectSignal=1  -D /store/user/amarini/HGG/Bias/jobs/cat0_mu1.0/ --runSpecificFiles='0' -o jobs/cat0_mu1.0.root
 ~~~
 
+###Combination and Results
+combine will take care of performing the fits and get the results.
+* First we need to create the datacards and have a consistent ws wrt the systematics (we can recicle the fits and plots -> very fast):
+
+~~~
+cd SimultaneousSignalFitting
+./bin/calcPhotonSystConsts -i CMS-HGG_syst.root \
+     -m 125 -n 20 -p `echo Bin{0..5} | tr ' ' ','` -o dat/unfoldPhotonCatSyst.dat \
+     --photonCatScales EBlowR9,EBhighR9,EElowR9,EEhighR9 \
+     --photonCatScalesCorr EBlowR9,EBhighR9,EElowR9,EEhighR9 \
+     --photonCatSmears EBlowR9,EBhighR9,EBlowR9Phi,EBhighR9Phi,EElowR9,EEhighR9 \
+     --globalScales '' \
+     --globalScalesCorr Absolute,Geant4,NonLinearity:0:2.:5:1.5
+./bin/SignalFit -i CMS-HGG_Sig.root \
+     -o CMS-HGG_sigfit_newsyst.root \
+     -d dat/unfoldAnalysis.dat \
+     -s dat/unfoldPhotonCatSyst.dat \
+     -n 20 \
+     --skipPlots \
+     --cloneFits CMS-HGG_sigfit.root | tee outdir/var/sigfitrun.log
+~~~
+
+* Now we produce the datacard
+
+~~~
+cd [h2gglobe/]UnfoldAnalysis/Macros
+python ../../Macros/makeParametricModelDatacard.py -i CMS-HGG_syst.root \
+      --photonCatScales EBlowR9:0.866,EBhighR9:0.866,EElowR9:0.866,EEhighR9:0.866 \
+      --photonCatScalesCorr EBlowR9:0.5,EBhighR9:0.5,EElowR9:0.5,EEhighR9:0.5 \
+      --globalScales '' \
+      --globalScalesCorr Absolute:0.0001,Geant4:0.0005,NonLinearity:0.001 \
+      -o cms_hgg_datacard_var.txt \
+      --c 20
+      --isDiffAnalysis nBins \
+      --isMultiPdf
+~~~
+
+* combineHarvester (there is a modified version of it)
+
+~~~
+python combineHarvesterUnfolding.py \
+      -d datacard[w/o txt] \
+      -q 1nh \
+      -D outputDir \
+      -m 125 \
+      --nBins 7 \
+python combineHarvesterUnfolding.py \
+      -D outputDir \
+      --nBins 7 \
+      --hadd
+python combinePlots.py \
+      -D directory \
+      -s CMS-HGG_sig (the original) \
+      -v varname \
+      -b 
+~~~
 
 ###Miscellaneous
 * **screen**: a very useful tool. It spawn shell(s) that are kept alive running on the background of the machine, and you can re-attach them.
@@ -142,7 +198,7 @@ python scripts/make_hists_from_raw_files.py --eosWalk=100 --expectSignal=1  -D /
 if you forgot where, the globalcheck appends a line in  
 
          $cat ~/check_host.txt
-         lxplus0057.cern.ch diffanalysis_v1 pToMscaled dPhi
+         lxplus0057.cern.ch diffanalysis_v2 pToMscaled dPhi
 so you can go bach there and re-attach it in case you forgot where it was.
 
 * **mail**: you can use them to tell you when something is done (in a screen for example). No jobs in batch-queues, like:
