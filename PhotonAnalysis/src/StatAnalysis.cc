@@ -2100,10 +2100,11 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
 	    DiffAna_Mjj = dijet.M();
 	    DiffAna_dEtajj = fabs(jet1->Eta() - jet2->Eta());
 	    DiffAna_Zepp = fabs(diphoton.Eta() - 0.5*(jet1->Eta() + jet2->Eta()));
-	    double dphi=jet1->Phi()-jet2->Phi();
-	    if (dphi>TMath::Pi()) dphi=2*TMath::Pi()-dphi;
-	    if (dphi<-TMath::Pi()) dphi=-2*TMath::Pi()-dphi;
-	    DiffAna_dPhijj = dphi;
+	    //double dphi=jet1->Phi()-jet2->Phi();
+	    //if (dphi>TMath::Pi()) dphi=2*TMath::Pi()-dphi;
+	    //if (dphi<-TMath::Pi()) dphi=-2*TMath::Pi()-dphi;
+	    //DiffAna_dPhijj = dphi;
+        DiffAna_dPhijj = fabs(jet1->DeltaPhi(*jet2));
 	    DiffAna_dPhiggjj = fabs(diphoton.DeltaPhi(dijet));
 	}
     }
