@@ -130,6 +130,11 @@ for iBin in range(0,nBins_):
 
 	f.Close()
 L.Draw()
+line=ROOT.TGraph()
+line.SetName("line")
+line.SetPoint(0,-10,1)
+line.SetPoint(1,10,1)
+line.Draw("L SAME")
 
 C.SaveAs("plots_nll_"+dir_.replace("/","")+".pdf")
 C.SaveAs("plots_nll_"+dir_.replace("/","")+".root")
@@ -167,6 +172,7 @@ for iBin in range(0,nBins_):
 
 C2=ROOT.TCanvas("c2","c2")
 ROOT.gStyle.SetErrorX(0)
+ROOT.gStyle.SetOptStat(0)
 H=ROOT.TH1F("h","Data",nBins_-1,histBins);
 HErr=ROOT.TH1F("h","Error",nBins_-1,histBins);
 HExp=ROOT.TH1F("Expected","Expected",nBins_-1,histBins);
@@ -187,6 +193,6 @@ HExp.Draw("HIST SAME")
 HErr.Draw("P E SAME")
 H.Draw("P SAME")
 
-C2.SaveAs("C2"+dir_.replace("/","")+".pdf")
-C2.SaveAs("C2"+dir_.replace("/","")+".png")
-C2.SaveAs("C2"+dir_.replace("/","")+".root")
+C2.SaveAs("xSec_"+dir_.replace("/","")+".pdf")
+C2.SaveAs("xSec_"+dir_.replace("/","")+".png")
+C2.SaveAs("xSec_"+dir_.replace("/","")+".root")

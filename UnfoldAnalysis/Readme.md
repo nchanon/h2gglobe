@@ -134,6 +134,7 @@ cd SimultaneousSignalFitting
      -n 20 \
      --skipPlots \
      --cloneFits CMS-HGG_sigfit.root | tee outdir/var/sigfitrun.log
+     -L 120 -H 130
 ~~~
 
 * Now we produce the datacard
@@ -151,24 +152,31 @@ python ../../Macros/makeParametricModelDatacard.py -i CMS-HGG_syst.root \
       --isMultiPdf
 ~~~
 
-* combineHarvester (there is a modified version of it)
+* At the moment the datacard is **not** written correctly w.r.t. the systematics, so you should erase them all. (Work in progress)
+* combineHarvester (there is a modified version of it in UnfoldAnalysis/Macros ). You need to copy or symlink the ws, with the one written in the datacard. (I will change it)
 
 ~~~
 python combineHarvesterUnfolding.py \
-      -d datacard[w/o txt] \
+      -d datacard \
       -q 1nh \
       -D outputDir \
       -m 125 \
-      --nBins 7 \
+      --nBins 7 (nBins+1) \
 python combineHarvesterUnfolding.py \
       -D outputDir \
-      --nBins 7 \
+      --nBins 7 (nBins+1) \
       --hadd
 python combinePlots.py \
       -D directory \
       -s CMS-HGG_sig (the original) \
       -v varname \
       -b 
+~~~
+
+* Matrixes plots:
+
+~~~
+python makeResponseMatrix.py [options] CMS-HGG_sigfit.root
 ~~~
 
 ###Miscellaneous
