@@ -1,0 +1,5 @@
+#pT
+VarDef=dEtajj
+nVarCategories=3
+varCatBoundaries=0.,0.82,2.33,10
+bkgPolOrderByCat=5,5,5,5,5,5,5,5,5

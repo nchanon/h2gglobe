@@ -1,0 +1,6 @@
+#pT
+VarDef=Zepp
+nVarCategories=3
+varCatBoundaries=0,0.5,1.2,10
+bkgPolOrderByCat=5,5,5,5,5,5,5,5,5
+

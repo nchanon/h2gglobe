@@ -1,0 +1,6 @@
+#pT
+JetEtaForDiffAnalysis=4.7
+VarDef=dEtajj
+nVarCategories=3
+varCatBoundaries=0.,1.65,4.3,10.
+bkgPolOrderByCat=5,5,5,5,5,5,5,5,5

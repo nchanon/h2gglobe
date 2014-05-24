@@ -1,4 +1,5 @@
+JetEtaForDiffAnalysis=4.7
 VarDef=dPhijj
 nVarCategories=4
-varCatBoundaries=0.,0.82,1.67,3.15
+varCatBoundaries=0.,0.88,1.82,3.15
 bkgPolOrderByCat=5,5,5,5,5,5,5,5,5,5,5,5
