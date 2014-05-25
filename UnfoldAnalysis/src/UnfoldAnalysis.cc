@@ -239,7 +239,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 	} 
 	else if( VarDef=="Ygg")
 	{
-		var=Hgg.Rapidity();
+		var=fabs(Hgg.Rapidity());
 	} 
 	else if( VarDef=="CosThetaStar")
 	{

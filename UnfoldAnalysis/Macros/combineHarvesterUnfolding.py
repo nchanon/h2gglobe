@@ -22,6 +22,7 @@ StatOnly_=False
 ProfileMH_=False
 SkipWs_=False
 ResubmitFail_=False
+ResubmitRun_=False
 ##########################
 
 ############PARSER ##################
@@ -43,6 +44,7 @@ if __name__=="__main__":
 	parser.add_option("","--nPoints",dest='nPoints',type='int',help="nPoints per Bin in submission. Default=%default",default=nPoints_)
 	parser.add_option("","--hadd",dest='hadd',action='store_true',help="DoHadd instead. Default=%default",default=hadd_)
 	parser.add_option("","--resubmitFail",dest='resubmitFail',action='store_true',help="Resubmit Failed jobs. Default=%default",default=ResubmitFail_)
+	parser.add_option("","--resubmitRun",dest='resubmitRun',action='store_true',help="Resubmit Runed jobs. Default=%default",default=ResubmitRun_)
 	(options,args)=parser.parse_args()
 	
 	dryRun_=options.dryRun
@@ -61,7 +63,8 @@ if __name__=="__main__":
 	ProfileMH_=options.ProfileMH
 	SkipWs_=options.SkipWs
 	ResubmitFail_=options.resubmitFail
-	if ResubmitFail_:
+	ResubmitRun_=options.resubmitRun
+	if ResubmitFail_ or ResubmitRun_:
 		if not SkipWs_: print "Setting Skip Ws Option!"
 		SkipWs_=True
 	muRange_[0]=float(options.murange.split(",")[0])
@@ -175,7 +178,7 @@ def GetListOfJobs(l):
 	return R
 
 
-def ResubmitFail():
+def ResubmitFail(type=0):
 	l_fail = GetListOfJobs( glob("%s/*fail"%(dir_)) )
 	l_done  = GetListOfJobs( glob("%s/*done"%(dir_)) )
 	l_run = GetListOfJobs( glob("%s/*run"%(dir_))  )
@@ -196,8 +199,14 @@ def ResubmitFail():
 	for (iBin,iJob) in l_fail:
 		print "Bin%d_Job%d "%(iBin,iJob),
 
+	if type==0: l_resub=l_fail
+	elif type==1: l_resub=l_run
+	elif type==2: 
+		l_resub=l_fail	
+		l_resub += l_run
+
 	print "\nGoing To Resubmit\n"
-	for (iBin,iJob) in l_fail:
+	for (iBin,iJob) in l_resub:
 		doneFile="%s/%s/jobInfo_Bin%d_Job%d.done"%(os.environ['PWD'],dir_,iBin,iJob ) 
 		failFile="%s/%s/jobInfo_Bin%d_Job%d.fail"%(os.environ['PWD'],dir_,iBin,iJob ) 
 		runFile ="%s/%s/jobInfo_Bin%d_Job%d.run" %(os.environ['PWD'],dir_,iBin,iJob ) 
@@ -216,8 +225,10 @@ if __name__=="__main__":
 		cmdList+=fileList	
 		if dryRun_: print ' '.join(cmdList);
 		else: call(cmdList);
-    elif ResubmitFail_:
+    elif ResubmitFail_ :
 	ResubmitFail()
+    elif ResubmitRun_:
+	ResubmitFail(1)
     else:
 	print "## Creating WorkSpace"
 	CreateWS()

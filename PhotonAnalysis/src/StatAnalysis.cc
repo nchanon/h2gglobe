@@ -2120,7 +2120,7 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
     }
     else if (VarDef=="CosThetaStar") varValue = TMath::Abs(getCosThetaCS(lead_p4,sublead_p4,l.sqrtS));
     else if (VarDef=="Ygg") varValue = TMath::Abs(diphoton.Rapidity());
-    else if (VarDef=="Njets" || VarDef=="LeadJetpT" || VarDef=="Mjj" || VarDef=="dPhijj" || VarDef=="Zepp" || VarDef=="dPhiggjj"){
+    else if (VarDef=="Njets" || VarDef=="LeadJetpT" || VarDef=="Mjj" || VarDef=="dPhijj" || VarDef=="Zepp" || VarDef=="dPhiggjj" || VarDef == "dEtajj" || "dRapidityHiggsJet" ){
 
 	if (VarDef=="Njets") {
 	    varValue = njet;
