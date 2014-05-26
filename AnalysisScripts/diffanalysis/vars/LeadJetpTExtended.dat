@@ -1,0 +1,11 @@
+
+VarDef=LeadJetpT
+JetEtaForDiffAnalysis=4.7
+
+#nVarCategories=5
+#varCatBoundaries=25.,35.,50.,70.,100.,7000.
+#bkgPolOrderByCat=4,4,3,3,4,4,3,3,4,4,3,3,4,4,3,3,4,4,3,3
+
+nVarCategories=5
+varCatBoundaries=0.,40.,64.,104.,200.,3500.
+bkgPolOrderByCat=5,5,5,5,5,5,5,5,5,5,5,5,5,5,5
