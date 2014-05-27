@@ -265,7 +265,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		if (nJets >1)
 		{
 			TLorentzVector j1=*((TLorentzVector*)l.genjet_algo1_p4->At(jets.begin()->second));
-			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (jets.begin()++)->second));
+			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (++jets.begin())->second));
 		
 			var= fabs(j1.DeltaPhi(j2));
 		}
@@ -277,7 +277,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		if (nJets >1)
 		{
 			TLorentzVector j1=*((TLorentzVector*)l.genjet_algo1_p4->At(jets.begin()->second));
-			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (jets.begin()++)->second));
+			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (++jets.begin())->second));
 		
 			var= (j1+j2).M(); 
 		}
@@ -289,7 +289,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		if (nJets >1)
 		{
 			TLorentzVector j1=*((TLorentzVector*)l.genjet_algo1_p4->At(jets.begin()->second));
-			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (jets.begin()++)->second));
+			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (++jets.begin())->second));
 		
 			var=  fabs(Hgg.DeltaPhi(j1+j2));
 		}
@@ -301,7 +301,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		if (nJets >1)
 		{
 			TLorentzVector j1=*((TLorentzVector*)l.genjet_algo1_p4->At(jets.begin()->second));
-			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (jets.begin()++)->second));
+			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (++jets.begin())->second));
 			var=fabs(Hgg.Eta() - 0.5*(j1.Eta() + j2.Eta()));
 		}
 		else
@@ -312,7 +312,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		if (nJets >1)
 		{
 			TLorentzVector j1=*((TLorentzVector*)l.genjet_algo1_p4->At(jets.begin()->second));
-			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (jets.begin()++)->second));
+			TLorentzVector j2=*((TLorentzVector*)l.genjet_algo1_p4->At( (++jets.begin())->second));
 			var=fabs(j1.Eta() - j2.Eta());
 		}
 		else
