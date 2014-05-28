@@ -88,7 +88,8 @@ def GetGenHisto(ws,nBin,m,isBinned=False):
 	if isBinned:
 		H=ROOT.TH1D("gen","gen",nBin,0,nBin)
 		for jBin in range(0,nBin):
-			hist=ws.data("roohist_sig_gen_Bin%d_mass_m%d"%(jBin,int(m),cat))
+			hist=ws.data("roohist_sig_gen_Bin%d_mass_m%d_cat0"%(jBin,int(m) ) )
+		   	H.SetBinContent(jBin, hist.sumEntries() ) ## eff
 		return H
 
 colors=[ROOT.kBlue+2,ROOT.kRed+2,ROOT.kGreen+2,ROOT.kOrange,ROOT.kCyan,ROOT.kGreen,ROOT.kBlack]
@@ -107,6 +108,10 @@ if __name__=="__main__":
 		C1=ROOT.TCanvas("c1","c1",800,800)
 		C2=ROOT.TCanvas("c2","c2",800,800)
 		C3=ROOT.TCanvas("c3","c3",800,800)
+		C4=ROOT.TCanvas("c4","c4",800,800)
+
+		L=ROOT.TLegend(0.12,.7,.32,.89)
+		
 		AllH=[]
 		max1=-1
 		max2=-1
@@ -118,6 +123,7 @@ if __name__=="__main__":
 			H.SetLineColor(colors[mod])
 			AllH.append(H)
 			AllH.append(M)
+			L.AddEntry(M,"cat%d"%mod,"F")
 			opt1="BOX"
 			opt2="HIST"
 			if mod>0 : 
@@ -136,6 +142,7 @@ if __name__=="__main__":
 			R.SetTitle("Efficiency");
 			R.GetYaxis().SetTitle("Bkg fraction Efficiency");
 
+
 			K=M.ProjectionX()
 			K.Add(R)
 
@@ -146,9 +153,36 @@ if __name__=="__main__":
 			R.Draw(opt2)
 			AllH.append(R)
 
+			if isBinned:
+				C4.cd()
+				G=GetGenHisto(ws,nBin,options.mass,isBinned);
+				J=M.ProjectionY();
+				Eff=J.Clone("Eff_ratio_mod%d"%mod);
+				Eff.GetYaxis().SetTitle("Efficiencies x Cat");
+
+				Eff.Divide(G);
+				Eff.SetLineColor(colors[mod])
+				Eff.SetMaximum(1.0)
+				Eff.SetMinimum(0.0)
+				Eff.Draw(opt2)
+				if mod==0 : 
+					Tot=Eff.Clone("Eff_ratio_sum")
+					Tot.SetLineColor(ROOT.kBlack)
+				else:
+					Tot.Add(Eff)
+
+				AllH.append(Eff)
+
 
 		C1.FindObject("matrix_mod0").SetMaximum(max1*1.2);
 		C2.FindObject("bkg_mod0").SetMaximum(max1*1.2);
+		C1.cd()
+		L.Draw()
+		C2.cd()
+		L.Draw()
+		C3.cd()
+		L.Draw()
+
 
 		basename=options.out[0:options.out.rfind('.')]
 		ext=options.out[options.out.rfind('.'):]
@@ -158,6 +192,13 @@ if __name__=="__main__":
 		C2.SaveAs(basename + "_2"+ ".root" )
 		C3.SaveAs(basename + "_3"+ ext )
 		C3.SaveAs(basename + "_3"+ ".root" )
+		if isBinned:
+			C4.cd()
+			Tot.Draw("SAME")
+			L.AddEntry(Tot,"tot","L")
+			L.Draw()
+			C4.SaveAs(basename + "_4"+ ext )
+			C4.SaveAs(basename + "_4"+ ".root" )
 
 
 
