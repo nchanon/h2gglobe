@@ -1,14 +1,15 @@
-
+import sys,os
 from optparse import OptionParser
 
 usage = "usage: %prog [options] fileName"
 parser = OptionParser(usage=usage)
 #parser.add_option("-f","--dirName"  ,dest='dirName' ,type='string',help="directory on eos root://eoscms///store/...",default="root://eoscms///store/user/amarini/zjets_V00-12")
-parser.add_option("-w","--workSpace"  ,dest='ws' ,type='string',help="workspace name. defalut=%default",default="wsig_8TeV")
+parser.add_option("-w","--workSpace"  ,dest='ws' ,type='string',help="workspace name. defalut=wsig_8TeV/cms_hgg_workspace",default="")
 parser.add_option("-c","--nCat"  ,dest='nCat' ,type='int',help="number of categories. nCat=%default",default=20)
 parser.add_option("-b","--nBin"  ,dest='nBin' ,type='int',help="number of Bins at Gen Level. nBin=%default",default=5)
 parser.add_option("-m","--mass"  ,dest='mass' ,type='float',help="Mass. mass=%default",default=125)
 parser.add_option("-o","--out"  ,dest='out' ,type='string',help="Output File Name=%default",default="matrixes.pdf")
+parser.add_option("-k","--isBinned"  ,dest='isBinned' ,action='store_true',help="isBinned. default=%default",default=False)
 
 (options,args)=parser.parse_args()
 
@@ -18,43 +19,77 @@ if len(args)<1:
 nBin=options.nBin
 nCat=options.nCat
 
+isBinned=options.isBinned
+if isBinned:
+	wsName="cms_hgg_workspace"
+	if options.ws != "": wsName=options.ws
+else:
+	wsName="wsig_8TeV"
+	if options.ws != "": wsName=options.ws
+
 if nCat % nBin !=0:
 	parser.error("inconsistent number of bin and categories: nCat%nBin!=0.")
 
 fileName=args[0]
 
+sys.argv=[]
 import ROOT
 
 print " -> Importing Combine Library <- "
 ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
 ROOT.gStyle.SetOptStat(0)
 
-def ConstructMatrix(ws,nBin,mod,m):
+def ConstructMatrix(ws,nBin,mod,m,isBinned=False):
 	M=ROOT.TH2D("matrix_mod%d"%mod,"mod%d"%mod,nBin,0,nBin,nBin,0,nBin)
+	M.GetXaxis().SetTitle("RECO")
+	M.GetYaxis().SetTitle("GEN")
 	H=ROOT.TH1D("bkg_mod%d"%mod,"bkg_mod%d"%mod,nBin,0,nBin)
 	#"hggpdfsmrel_8TeV_Bin5_$CHANNEL"
 	#mass_=ws.var("CMS_hgg_mass")
-	mass_=ws.var("MH")
-	mass2_=ws.var("MH_SM")
-	mass_.setVal(m)
-	mass2_.setVal(m)
 	#argset=ROOT.RooArgSet(mass_);
-	for iBin in range(0,nBin):
-	   cat=mod*nBin + iBin	
-	   for jBin in range(0,nBin):
-	        print "Constructing Matrix for Bin=%d and cat=%d . Mod=%d, nBin=%d, iBin=%d"%(jBin,cat,mod,nBin,iBin)
-		#pdf=ws.pdf("hggpdfsmrel_8TeV_Bin%d_cat%d_2_norm"%(jBin,cat))
-		func=ws.function("hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(jBin,cat))
-		#pdf=ws.pdf("hggpdfsmrel_8TeV_Bin5_cat9_2_norm")
-		if func == None:
-			print "func","hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(jBin,cat),"is NULL"
-		M.SetBinContent(iBin,jBin, func.getVal()   )	
-	   func=ws.function("hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(nBin,cat))
-	   if func == None:
-		print "func","hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(nBin,cat),"is NULL"
-	   H.SetBinContent(iBin, H.GetBinContent(iBin) + func.getVal() ) ## bkg
-	return (M,H)
 
+	if not isBinned:
+		mass_=ws.var("MH")
+		mass2_=ws.var("MH_SM")
+		mass_.setVal(m)
+		mass2_.setVal(m)
+		for iBin in range(0,nBin):
+		   cat=mod*nBin + iBin	
+		   for jBin in range(0,nBin):
+		        print "Constructing Matrix for Bin=%d and cat=%d . Mod=%d, nBin=%d, iBin=%d"%(jBin,cat,mod,nBin,iBin)
+			func=ws.function("hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(jBin,cat))
+			if func == None:
+				print "func","hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(jBin,cat),"is NULL"
+			M.SetBinContent(iBin,jBin, func.getVal()   )	
+		   func=ws.function("hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(nBin,cat))
+		   if func == None:
+			print "func","hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(nBin,cat),"is NULL"
+		   H.SetBinContent(iBin, func.getVal() ) ## bkg
+		return (M,H)
+
+	if isBinned:
+		for iBin in range(0,nBin):
+		   cat=mod*nBin + iBin	
+		   for jBin in range(0,nBin):
+		        print "Constructing Binned Matrix for Bin=%d and cat=%d . Mod=%d, nBin=%d, iBin=%d"%(jBin,cat,mod,nBin,iBin)
+			hist=ws.data("roohist_sig_Bin%d_mass_m%d_cat%d"%(jBin,int(m),cat))
+			if hist == None:
+				print "hist","roohist_sig_Bin%d_mass_m%d_cat%d"%(jBin,m,cat),"is NULL"
+			M.SetBinContent(iBin,jBin, hist.sumEntries()   )	
+		   hist=ws.data("roohist_sig_Bin%d_mass_m%d_cat%d"%(nBin,int(m),cat))
+		   if hist == None:
+			print "hist","roohist_sig_Bin%d_mass_m%d_cat%d"%(jBin,m,cat),"is NULL"
+		   H.SetBinContent(iBin, hist.sumEntries() ) ## bkg
+		return (M,H)
+
+def GetGenHisto(ws,nBin,m,isBinned=False):
+	### TO BE COMPLETED
+	if not isBinned: return None
+	if isBinned:
+		H=ROOT.TH1D("gen","gen",nBin,0,nBin)
+		for jBin in range(0,nBin):
+			hist=ws.data("roohist_sig_gen_Bin%d_mass_m%d"%(jBin,int(m),cat))
+		return H
 
 colors=[ROOT.kBlue+2,ROOT.kRed+2,ROOT.kGreen+2,ROOT.kOrange,ROOT.kCyan,ROOT.kGreen,ROOT.kBlack]
 
@@ -65,7 +100,7 @@ if __name__=="__main__":
 			parser.print_usage()
 			#parser.error("file %s does not exists"%fileName)
 
-		ws = fRoot.Get(options.ws)
+		ws = fRoot.Get(wsName)
 		if ws == None:
 			print "workspace %s not in file %s"%(options.ws,fileName)
 			parser.print_usage()
@@ -76,7 +111,7 @@ if __name__=="__main__":
 		max1=-1
 		max2=-1
 		for mod in range(0,nCat/nBin):
-			(M,H) = ConstructMatrix(ws,nBin,mod,options.mass)
+			(M,H) = ConstructMatrix(ws,nBin,mod,options.mass,isBinned)
 			#M.SetFillColor(colors[mod])
 			M.SetFillStyle(0)
 			M.SetLineColor(colors[mod])
@@ -98,7 +133,11 @@ if __name__=="__main__":
 
 			C3.cd()
 			R=H.Clone("bkg_ratio_mod%d"%mod)
+			R.SetTitle("Efficiency");
+			R.GetYaxis().SetTitle("Bkg fraction Efficiency");
+
 			K=M.ProjectionX()
+			K.Add(R)
 
 			R.Divide(K)
 			R.SetLineColor(colors[mod])

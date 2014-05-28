@@ -44,6 +44,7 @@ public:
 
   bool Analysis(LoopAll& l, Int_t jentry);
 
+  bool SkimEvents(LoopAll& l, int jentry) ; 
   //flags
   bool doUnfoldHisto;
 

@@ -1,5 +1,7 @@
 #include "UnfoldAnalysis/interface/UnfoldAnalysis.h"
 
+#define UDEBUG 0
+
 
 // -------------------------------------------------------------------------------------------
 void UnfoldAnalysis::Init(LoopAll&l){
@@ -61,7 +63,6 @@ void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins)
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_mass_m%d_rv",iBin,sig),nDataBins);
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_mass_m%d_wv",iBin,sig),nDataBins);
 			}
-			cout<<endl;
 			//genLevel Histograms -
 			// book only 1 cat
 			assert(l.rooContainer->ncat == nCategories_);
@@ -70,7 +71,6 @@ void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins)
 			{
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_mass_m%d",iBin,sig),nDataBins);
 			}
-			cout<<endl;
 			l.rooContainer->SetNCategories(nCategories_);
 		}
 	}
@@ -102,6 +102,7 @@ void UnfoldAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, floa
 
 	if (doUnfoldHisto && cur_type <0)
 	{
+		if(UDEBUG)cout<<" -- Fill RooContainer -- "<<endl;
 		bin= computeGenBin(l,cur_type)	;
 		if ( bin<0 ) bin=nVarCategories;
 	
@@ -122,6 +123,7 @@ void UnfoldAnalysis::FillRooContainerSyst(LoopAll& l, const std::string &name, i
 	UnfoldBaseClass::FillRooContainerSyst(l,name,cur_type,mass_errors,mva_errors,categories,weights,diphoton_id);
 //should I add something here? 
 	if (cur_type <0 ){
+		if(UDEBUG)cout<<" -- Fill RooContainer Syst -- "<<name<<endl;
 		int bin=computeGenBin(l,cur_type);
 		if (bin<0) bin=nVarCategories;
 		int sig=l.normalizer()->GetMass(cur_type) ;
@@ -145,6 +147,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 //		<<endl;
 //	}
 
+	if(UDEBUG)cout<<"EFF DEBUG EVENT 0"<<endl;
 	if(cur_type>=0) return is_bkg; //no gen for bkg & data
 
 //loop over the gen particles
@@ -164,6 +167,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		phoHiggs[ ((TLorentzVector*)l.gp_p4->At(igp))->Pt() ]=igp;
 	}
 	if( phoHiggs.size()<2) return is_bkg; // higgs photons does not exist
+	if(UDEBUG)cout<<" --> 2HiggsPhoton pass"<<endl;
 
 //effGenCut["Higgs"]+=1;//DEBUG
 
@@ -185,11 +189,22 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 	assert(PhoPtDiffAnalysis.size()>0);
 
 	if( g1.Pt()/Hgg.M() < PhoPtDiffAnalysis[0] ) return is_bkg;
+	if(UDEBUG)cout<<" --> PHO1Pt pass: "<< g1.Pt()/Hgg.M() << ">" << PhoPtDiffAnalysis[0]<<" Pt:"<<g1.Pt()<< " M:"<<Hgg.M()  <<endl;
+	if( fabs(g1.Eta()) > PhoEtaDiffAnalysis ) return is_bkg;
+	if(UDEBUG)cout<<" --> PHO1Eta pass: "<< g1.Eta() <<"<"<<PhoEtaDiffAnalysis<<endl;
 
 	if(PhoPtDiffAnalysis.size()>1)
+		{
 		if( g2.Pt()/Hgg.M() < PhoPtDiffAnalysis[1]) return is_bkg;
-		else // if only one put equal to the first photon pt cut
-			if( g2.Pt()/Hgg.M() < PhoPtDiffAnalysis[0] ) return is_bkg;
+		}
+	else // if only one put equal to the first photon pt cut
+		{
+		if( g2.Pt()/Hgg.M() < PhoPtDiffAnalysis[0] ) return is_bkg;
+		}
+	if(UDEBUG)cout<<" --> PHO2Pt pass: "<< g2.Pt()/Hgg.M() << ">" << PhoPtDiffAnalysis[1]<<" Pt:"<<g2.Pt()<< " M:"<<Hgg.M()  <<endl;
+
+	if( fabs(g2.Eta()) > PhoEtaDiffAnalysis ) return is_bkg;
+	if(UDEBUG)cout<<" --> PHO2Eta pass"<< g2.Eta() <<"<"<<PhoEtaDiffAnalysis<<endl;
 
 	//compute isolation for photons
 	float pho1Iso=0,pho2Iso=0;
@@ -203,6 +218,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 //they are matched to the higgs, so I don't need to consider more photons if not pass the preselection
 
 	if(pho1Iso >= PhoIsoDiffAnalysis || pho2Iso >= PhoIsoDiffAnalysis) return is_bkg;
+	if(UDEBUG)cout<<" --> PHOIso pass"<<endl;
 
 //effGenCut["pho"]+=1;//DEBUG
 //redo matching with configurables parameters GEN->RECO TODO - very small corrections ~1./1000 000
@@ -337,7 +353,16 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 		if( varCatBoundaries[iBin] <= var && var< varCatBoundaries[iBin+1] ) bin=iBin;	
 
 //if(bin>=0)effGenCut["Full"]+=1; //DEBUG
-
+	if(bin>=0) 
+		if(UDEBUG)cout<<" --> VAR pass: "<<var<< "Bin: "<<bin <<endl;
+	else
+		{
+		if(UDEBUG){
+			cout<<" --> VAR Fail: "<<var<<" Bin: "<<bin<<" ";
+			for(int i=0;i<varCatBoundaries.size();i++)cout<<varCatBoundaries[i]<<",";
+			cout<<endl;
+			}
+		}
 	return bin ;
 }
 
@@ -355,14 +380,22 @@ bool UnfoldAnalysis::Analysis(LoopAll& l, Int_t jentry){
 //-----
 
 	int g1,g2;
+	if(UDEBUG)cout<<" -- new event -- "<<l.event<<endl;
 	int bin=computeGenBin(l,cur_type,g1,g2);
 
 	if (bin>=0 && doUnfoldHisto && g1>=0 && g2>=0 ){
 		float HiggsPt= ( *((TLorentzVector*)l.gp_p4->At(g1)) + *((TLorentzVector*)l.gp_p4->At(g2)) ).Pt();
 		// VERY VERBOSE
-		//cout<<" Going to Fill: << Bin:"<<bin<<" mass:"<<l.normalizer()->GetMass(cur_type)<<" weight:"<<(float)l.sampleContainer[l.current_sample_index].weight() * PtReweight(HiggsPt,cur_type) <<endl;
+		if(UDEBUG>1)cout<<" Going to Fill: << Bin:"<<bin<<" mass:"<<l.normalizer()->GetMass(cur_type)<<" weight:"<<(float)l.sampleContainer[l.current_sample_index].weight() * PtReweight(HiggsPt,cur_type) <<endl;
 		l.rooContainer->InputDataPoint(Form("sig_gen_Bin%d_mass_m%d",bin,int(l.normalizer()->GetMass(cur_type)) ), 0 ,l.normalizer()->GetMass(cur_type) , (float)l.sampleContainer[l.current_sample_index].weight() * PtReweight(HiggsPt,cur_type) );
 	}
 //implementation of gen level histograms
 	return r;
+}
+
+//remove skimmings at gen level for signal -- otherwise don't care
+bool UnfoldAnalysis::SkimEvents(LoopAll& l, int jentry) {
+	if (l.itype[l.current]<0) return true;
+	else
+		return UnfoldBaseClass::SkimEvents(l,jentry);
 }
