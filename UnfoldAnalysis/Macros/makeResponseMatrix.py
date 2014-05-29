@@ -60,11 +60,11 @@ def ConstructMatrix(ws,nBin,mod,m,isBinned=False):
 			func=ws.function("hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(jBin,cat))
 			if func == None:
 				print "func","hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(jBin,cat),"is NULL"
-			M.SetBinContent(iBin,jBin, func.getVal()   )	
+			M.SetBinContent(iBin+1,jBin+1, func.getVal()   )	
 		   func=ws.function("hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(nBin,cat))
 		   if func == None:
 			print "func","hggpdfsmrel_8TeV_Bin%d_cat%d_norm"%(nBin,cat),"is NULL"
-		   H.SetBinContent(iBin, func.getVal() ) ## bkg
+		   H.SetBinContent(iBin+1, func.getVal() ) ## bkg
 		return (M,H)
 
 	if isBinned:
@@ -75,11 +75,11 @@ def ConstructMatrix(ws,nBin,mod,m,isBinned=False):
 			hist=ws.data("roohist_sig_Bin%d_mass_m%d_cat%d"%(jBin,int(m),cat))
 			if hist == None:
 				print "hist","roohist_sig_Bin%d_mass_m%d_cat%d"%(jBin,m,cat),"is NULL"
-			M.SetBinContent(iBin,jBin, hist.sumEntries()   )	
+			M.SetBinContent(iBin+1,jBin+1, hist.sumEntries()   )	
 		   hist=ws.data("roohist_sig_Bin%d_mass_m%d_cat%d"%(nBin,int(m),cat))
 		   if hist == None:
 			print "hist","roohist_sig_Bin%d_mass_m%d_cat%d"%(jBin,m,cat),"is NULL"
-		   H.SetBinContent(iBin, hist.sumEntries() ) ## bkg
+		   H.SetBinContent(iBin+1, hist.sumEntries() ) ## bkg
 		return (M,H)
 
 def GetGenHisto(ws,nBin,m,isBinned=False):
@@ -87,9 +87,9 @@ def GetGenHisto(ws,nBin,m,isBinned=False):
 	if not isBinned: return None
 	if isBinned:
 		H=ROOT.TH1D("gen","gen",nBin,0,nBin)
-		for jBin in range(0,nBin):
+		for jBin in range(0,nBin+1):
 			hist=ws.data("roohist_sig_gen_Bin%d_mass_m%d_cat0"%(jBin,int(m) ) )
-		   	H.SetBinContent(jBin, hist.sumEntries() ) ## eff
+		   	H.SetBinContent(jBin+1, hist.sumEntries() ) ## eff
 		return H
 
 colors=[ROOT.kBlue+2,ROOT.kRed+2,ROOT.kGreen+2,ROOT.kOrange,ROOT.kCyan,ROOT.kGreen,ROOT.kBlack]
