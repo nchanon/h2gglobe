@@ -259,7 +259,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 	} 
 	else if( VarDef=="CosThetaStar")
 	{
-		var=getCosThetaCS(g1,g2,l.sqrtS);
+		var=fabs(getCosThetaCS(g1,g2,l.sqrtS));
 	} 
 	else if ( VarDef=="dPhi")
 	{
