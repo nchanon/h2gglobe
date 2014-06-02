@@ -32,6 +32,7 @@ parser.add_option("","--xbinning",dest="xbinning",type="string",help="force x bi
 parser.add_option("","--ybinning",dest="ybinning",type="string",help="force y binning (b,l,h)")
 parser.add_option("","--groupentry",dest="groupentry",type="string",help="In ch compat, put per XXX (channel,group,etc)")
 parser.add_option("","--canv",dest="canv",type="string",default="700,700",help="Canvas size x,y")
+parser.add_option("","--landScapeChcomp",dest="landScapeChcomp",action="store_true",default=False,help="For ChannelComp: rotate plot by 90deg")
 parser.add_option("","--chcompLine",dest="chcompLine",type="int",help="For ChannelComp plot put line here splitting two year")
 parser.add_option("","--chcompShift",dest="chcompShift",type="float",help="For ChannelComp Asimov - shift to this value")
 parser.add_option("","--do1sig",dest="do1sig",default=False,action="store_true",help="For ChannelComp plot only 1 sigma errors")
@@ -1115,7 +1116,10 @@ def plotMPdfChComp():
   xtitle = "#sigma/#sigma_{SM}"
   if options.xlab: 
       xtitle = options.xlab
-  dummyHist = r.TH2F("dummy",";%s;"%xtitle,1,rMin,rMax,ppergraph,0,ppergraph)
+  if options.landScapeChcomp:
+      dummyHist = r.TH2F("dummy",";;%s"%xtitle,ppergraph,0,ppergraph,1,rMin,rMax)
+  else:
+    dummyHist = r.TH2F("dummy",";%s;"%xtitle,1,rMin,rMax,ppergraph,0,ppergraph)
 
   catGraph1sig = [r.TGraphAsymmErrors() for gr in range(options.groups)]
   catGraph2sig = [r.TGraphAsymmErrors() for gr in range(options.groups)]
@@ -1137,20 +1141,28 @@ def plotMPdfChComp():
       if grIndex == (options.groups-1)/2 :yshift=0.5
       elif grIndex > float(options.groups)/2: yshift = 0.5 + grIndex*0.2/options.groups
       else :yshift = 0.5 - (grIndex+1)*0.2/options.groups
+    xp = point[1]
+    yp = pIndex+yshift
     if options.chcompShift:
-      catGraph1sig[grIndex].SetPoint(pIndex,options.chcompShift,pIndex+yshift)
-      catGraph2sig[grIndex].SetPoint(pIndex,options.chcompShift,pIndex+yshift)
+      xp = options.chcompShift
+
+    if options.landScapeChcomp:
+      catGraph1sig[grIndex].SetPoint(pIndex,yp,xp)
+      catGraph2sig[grIndex].SetPoint(pIndex,yp,xp)
+      catGraph1sig[grIndex].SetPointError(pIndex,0.,0.,point[3],point[2])
+      catGraph2sig[grIndex].SetPointError(pIndex,0.,0.,point[5],point[4])
     else:
-      catGraph1sig[grIndex].SetPoint(pIndex,point[1],pIndex+yshift)
-      catGraph2sig[grIndex].SetPoint(pIndex,point[1],pIndex+yshift)
-
-
-    catGraph1sig[grIndex].SetPointError(pIndex,point[3],point[2],0.,0.)
-    catGraph2sig[grIndex].SetPointError(pIndex,point[5],point[4],0.,0.)
+      catGraph1sig[grIndex].SetPoint(pIndex,xp,yp)
+      catGraph2sig[grIndex].SetPoint(pIndex,xp,yp)
+      catGraph1sig[grIndex].SetPointError(pIndex,point[3],point[2],0.,0.)
+      catGraph2sig[grIndex].SetPointError(pIndex,point[5],point[4],0.,0.)
     
     if point[0]=='': binlabel = 'cat%d'%p
     else: binlabel = point[0]
-    dummyHist.GetYaxis().SetBinLabel(p+1,binlabel)
+    if options.landScapeChcomp:
+      dummyHist.GetXaxis().SetBinLabel(p+1,binlabel)
+    else:
+      dummyHist.GetYaxis().SetBinLabel(p+1,binlabel)
 
     catGraph1sig[grIndex].SetLineColor(int(options.colors[grIndex]))
     catGraph1sig[grIndex].SetLineWidth(2)
@@ -1396,11 +1408,18 @@ def run():
   if options.method=='pval' or options.method=='limit' or options.method=='maxlh':
     runStandard()
   elif options.method=='mh' or options.method=='mu' or options.method=='rv' or options.method=='rf' or options.method=='mpdfchcomp' or options.method=='mpdfmaxlh':
-    path = os.path.expandvars('$CMSSW_BASE/src/h2gglobe/Macros/FinalResults/rootPalette.C')
+    mypath = os.path.abspath(os.getcwd())
+    while not "h2gglobe" in os.path.basename(mypath):
+      mypath = os.path.dirname(mypath)
+    if "h2gglobe" in os.path.basename(mypath):
+      globe_path = mypath
+    else:
+      globe_path = os.path.expandvars('$CMSSW_BASE/src/h2gglobe')
+    path = '%s/Macros/FinalResults/rootPalette.C' % globe_path
     if not os.path.exists(path):
       sys.exit('ERROR - Can\'t find path: '+path) 
     r.gROOT.ProcessLine(".x "+path)
-    path = os.path.expandvars('$CMSSW_BASE/src/h2gglobe/Macros/ResultScripts/GraphToTF1.C')
+    path = '%s/Macros/ResultScripts/GraphToTF1.C' % globe_path
     if not os.path.exists(path):
       sys.exit('ERROR - Can\'t find path: '+path) 
     r.gROOT.LoadMacro(path)
