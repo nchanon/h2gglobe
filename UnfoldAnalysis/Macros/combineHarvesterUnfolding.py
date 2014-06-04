@@ -4,6 +4,33 @@ from glob import glob
 from subprocess import call
 from optparse import OptionParser
 
+def getVariableBins(var):
+	wd=os.environ['PWD']
+	wd_list=wd.split('/')
+	#todo: make it work for any directory that just contains h2gglobe
+	h2gglobe=wd_list.index('h2gglobe')
+	baseDir="/".join(wd_list[0:h2gglobe+1])
+	print "Opening file :", baseDir + "/AnalysisScripts/diffanalysis/vars/" + options.var + ".dat"
+	fVar = open( baseDir + "/AnalysisScripts/diffanalysis/vars/" + options.var + ".dat")
+	VarDef = ""
+	VarCategoryBoundaries=""
+	for line in fVar:
+		parts=line.split('#')[0].split('=')
+		if parts[0] == 'VarDef':
+			VarDef = parts[1]
+		if parts[0] == 'varCatBoundaries':
+			VarCategoryBoundaries= parts[1]
+	nBins=0
+	print "Boundaries ",
+	histBins=[]
+	for bound in VarCategoryBoundaries.split(','):
+		if bound != "":
+			print float(bound),
+			histBins.append(float(bound))
+			nBins +=1
+	print " "
+	return (nBins,histBins)
+
 
 ##### CONFIGURATION ######
 nPoints_=1000
@@ -23,6 +50,7 @@ ProfileMH_=False
 SkipWs_=False
 ResubmitFail_=False
 ResubmitRun_=False
+Var_=""
 ##########################
 
 ############PARSER ##################
@@ -30,6 +58,7 @@ if __name__=="__main__":
 	usage = "usage: %prog [options]"
 	parser=OptionParser(usage=usage)
 	parser.add_option("-d","--datacard" ,dest='datacard',type='string',help="datacard. Default=%default",default=datacard_)
+	parser.add_option("-v","--var" ,dest='var',type='string',help="variables name. Default=%default",default=Var_)
 	parser.add_option("-u","--unblind" ,dest='unblind',action='store_true',help="Unblind. Default=%default",default=False)
 	parser.add_option("-r","--murange" ,dest='murange',type='string',help="MuRange. Default=%default",default="%f,%f"%(muRange_[0],muRange_[1]))
 	parser.add_option("-D","--dir" ,dest='dir',type='string',help="Script Directory & results. Default=%default",default=dir_)
@@ -69,6 +98,13 @@ if __name__=="__main__":
 		SkipWs_=True
 	muRange_[0]=float(options.murange.split(",")[0])
 	muRange_[1]=float(options.murange.split(",")[1])
+	Var_=options.var
+	if Var_ != "":
+		nBinsOld=nBins_
+		nBins_=getVariableBins(Var_)[0] + 1
+		print "Changing binning from",nBinsOld,
+		print "to",nBins_,"because variable settings are declared"
+
 #####################################
 
 def getFilesFromDatacard(datacard):
@@ -113,6 +149,8 @@ def WriteExe(iBin,iJob):
 		out += "cp %s/%s/%s ./ \n"%(os.environ['PWD'],dir_,f)
 		if iBin==0 and iJob==0:
 			cmd="cp -v %s/%s %s/%s/%s"%(os.environ['PWD'],f,os.environ['PWD'],dir_,f)
+			print "cmd is"
+			print "    ",cmd
 			call(cmd.split(' ')) 
 
 	## construct combine line
@@ -217,6 +255,8 @@ def ResubmitFail(type=0):
 		else: call(cmd.split())
 
 if __name__=="__main__":
+    ##figure out files from datacard	
+    filesToCopy_.extend( getFilesFromDatacard(datacard_+".txt").split(',') )
     if hadd_:
 	print "## Hadd"
 	for iBin in range(0,nBins_):

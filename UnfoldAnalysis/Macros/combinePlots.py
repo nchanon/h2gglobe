@@ -183,15 +183,15 @@ HErr=ROOT.TH1F("h","Error",nBins_-1,histBins);
 HExp=ROOT.TH1F("Expected","Expected",nBins_-1,histBins);
 for iBin in range(0,nBins_-1):
 	print "Mu ",Mu[iBin][0], "+-", Mu[iBin][1],Mu[iBin][2]
-	HExp.SetBinContent(iBin+1,nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)* 19.7)
-	low=nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)* 19.7*Mu[iBin][1]
-	high=nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)* 19.7*Mu[iBin][2]
+	HExp.SetBinContent(iBin+1,nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)/ 19.7)
+	low=nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)/ (19.7) *Mu[iBin][1]
+	high=nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)/( 19.7) *Mu[iBin][2]
 	HErr.SetBinContent(iBin+1, (low+high)/2)
 	HErr.SetBinError(iBin+1,math.fabs(low-high)/2)
-	H.SetBinContent(iBin+1,nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)* 19.7*Mu[iBin][0] )
+	H.SetBinContent(iBin+1,nEventsInterpolated[iBin]/H.GetBinWidth(iBin+1)/( 19.7 )*Mu[iBin][0] )
 H.SetMarkerStyle(20)
 H.Draw("P")
-H.GetYaxis().SetTitle("L d#sigma/dP_{T}")
+H.GetYaxis().SetTitle("d#sigma/dP_{T}")
 HExp.SetLineColor(ROOT.kRed)
 HExp.SetLineWidth(2)
 HExp.Draw("HIST SAME")
