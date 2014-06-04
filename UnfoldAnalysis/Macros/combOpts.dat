@@ -4,29 +4,53 @@ datacard=cms_hgg_datacard_pToMscaled.txt
 ## Mu per category
 outDir=pToMscaled/RecoScanExpBin0		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin0 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 
 
-outDir=pToMscaled/RecoScanExpBin1		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin1 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/RecoScanExpBin1		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin1 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/RecoScanExpBin2		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin2 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/RecoScanExpBin2		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin2 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/RecoScanExpBin3		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin3 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/RecoScanExpBin3		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin3 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/RecoScanExpBin4		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin4 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/RecoScanExpBin4		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin4 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/RecoScanExpBin5		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin5 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/RecoScanExpBin5		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin5 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/RecoScanExpBin6		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin6 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/RecoScanExpBin6		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin6 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
 ## Mu per generator-level bin
 outDir=pToMscaled/UnfoldScanExpBin0		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin0 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 
 
-outDir=pToMscaled/UnfoldScanExpBin1		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin1 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/UnfoldScanExpBin1		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin1 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/UnfoldScanExpBin2		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin2 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/UnfoldScanExpBin2		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin2 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/UnfoldScanExpBin3		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin3 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/UnfoldScanExpBin3		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin3 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/UnfoldScanExpBin4		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin4 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/UnfoldScanExpBin4		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin4 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/UnfoldScanExpBin5		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin5 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/UnfoldScanExpBin5		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin5 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
 
-outDir=pToMscaled/UnfoldScanExpBin6		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin6 nBins=7  expected=1 expectSignal=1 expectSignalMass=125
+outDir=pToMscaled/UnfoldScanExpBin6		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin6 nBins=7  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
+
+########### ZEPP ####################
+# generic card and file opts
+datacard=cms_hgg_datacard_Zepp_StatOnly.txt
+
+## Mu per category
+# the options var= figures out the nBins
+outDir=Zepp/RecoScanExpBin0		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin0 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 
+
+outDir=Zepp/RecoScanExpBin1		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin1 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
+
+outDir=Zepp/RecoScanExpBin2		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin2 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
+
+outDir=Zepp/RecoScanExpBin3		 													method=RBinScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin3 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
+
+
+## Mu per generator-level bin
+outDir=Zepp/UnfoldScanExpBin0		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin0 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 
+
+outDir=Zepp/UnfoldScanExpBin1		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin1 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
+
+outDir=Zepp/UnfoldScanExpBin2		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin2 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace
+
+outDir=Zepp/UnfoldScanExpBin3		 													method=RDiffXsScan mh=125 muLow=0. muHigh=2. jobs=5 pointsperjob=10 opts=--squareDistPoi poix=r_Bin3 var=Zepp  expected=1 expectSignal=1 expectSignalMass=125 skipWorkspace

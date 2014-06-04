@@ -65,6 +65,38 @@ def getFilesFromDatacard(datacard):
         ret += ",%s" % f
     return ret
 
+def getVariableBins(var,verbose=True):
+        wd=os.environ['PWD']
+        wd_list=wd.split('/')
+        ### todo: make it work for any directory that just contains h2gglobe
+        ### h2gglobe=wd_list.index('h2gglobe')
+	h2gglobe=-1
+	for iWord in range(0,len(wd_list)):
+		if 'h2gglobe' in wd_list[iWord]:
+			h2gglobe=iWord
+        baseDir="/".join(wd_list[0:h2gglobe+1])
+        if verbose: print "Opening file :", baseDir + "/AnalysisScripts/diffanalysis/vars/" + var + ".dat"
+        fVar = open( baseDir + "/AnalysisScripts/diffanalysis/vars/" + var + ".dat")
+        VarDef = ""
+        VarCategoryBoundaries=""
+        for line in fVar:
+                parts=line.split('#')[0].split('=')
+                if parts[0] == 'VarDef':
+                        VarDef = parts[1]
+                if parts[0] == 'varCatBoundaries':
+                        VarCategoryBoundaries= parts[1]
+        nBins=0
+        if verbose: print "Boundaries ", 
+        histBins=[]
+        for bound in VarCategoryBoundaries.split(','):
+                if bound != "":
+                        if verbose: print float(bound),
+                        histBins.append(float(bound))
+                        nBins +=1
+        if verbose: print " "
+        return (nBins,histBins)
+
+
 parser = OptionParser()
 parser.add_option("-d","--datfile",help="Pick up running options from datfile")
 parser.add_option("-q","--queue",help="Which batch queue")
@@ -77,6 +109,7 @@ parser.add_option("-v","--verbose",default=False,action="store_true")
 parser.add_option("--poix",default="r")
 parser.add_option("--catsMap",default="")
 parser.add_option("--nBins",default=7)
+parser.add_option("--var",help='variable name. If setted figures out the correct nBins settings. default=%default',default=None)
 parser.add_option("--catRanges",default="")
 parser.add_option("--prefix",default="./")
 parser.add_option("--freezeAll",default=False,action="store_true",help="Freeze all nuisances")
@@ -128,13 +161,16 @@ if not os.path.exists(os.path.expandvars('$CMSSW_BASE/bin/$SCRAM_ARCH/combineCar
 	sys.exit('ERROR - CombinedLimit package must be installed')
 
 cwd = os.getcwd()
-allowedMethods = ['Asymptotic','AsymptoticGrid','ProfileLikelihood','ChannelCompatibilityCheck','MultiPdfChannelCompatibility','MHScan','MHScanStat','MHScanNoGlob','MuScan','MuScanMHProf','RVScan','RFScan','RVRFScan','MuMHScan','GenerateOnly', 'RProcScan', 'RTopoScan', 'RBinScan', 'MuVsMHScan','CVCFScan','KGluKGamScan']
+allowedMethods = ['Asymptotic','AsymptoticGrid','ProfileLikelihood','ChannelCompatibilityCheck','MultiPdfChannelCompatibility','MHScan','MHScanStat','MHScanNoGlob','MuScan','MuScanMHProf','RVScan','RFScan','RVRFScan','MuMHScan','GenerateOnly', 'RProcScan', 'RTopoScan', 'RBinScan','RDiffXsScan', 'MuVsMHScan','CVCFScan','KGluKGamScan']
 
 if opts.parallel:
     parallel = Parallel(cpu_count())
 
 if not opts.files and opts.datacard:
     opts.files = getFilesFromDatacard(opts.datacard)
+
+if opts.var and opts.var != "":
+	opts.nBins=getVariableBins(var,verbose=True)[0] 
 
 defaults = copy(opts)
 
@@ -474,6 +510,10 @@ def writeMultiDimFit(method=None,wsOnly=False):
                         comma ="|"
                 binstr += ").*TeV/.*Bin.*:r_Bin%d[1,0,20]'" % ibin
                 catsMap += binstr
+
+	unfoldOptions=""
+	if method == 'RDiffXsScan':
+		unfoldOptions +=" --PO nBin=%d"%(opts.nBins+1)
         
 	print 'Writing MultiDim Scan'
 	ws_args = { "RVRFScan" 	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:rVrFXSHiggs " ,
@@ -491,7 +531,7 @@ def writeMultiDimFit(method=None,wsOnly=False):
 		"MuMHScan"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:floatingHiggsMass",
 		"RTopoScan"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel %s %s" % ( catsMap, profMH ),
 		"RBinScan"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel %s %s" % ( catsMap, profMH ),
-                "RDiffXsScan"	: "-P %s.AnalysisScripts.UnfoldModel:unfoldModel %s" % ( globe_name, profMH ),
+                "RDiffXsScan"	: "-P %s.AnalysisScripts.UnfoldModel:unfoldModel %s %s" % ( globe_name, profMH , unfoldOptions),
 		"RProcScan"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:floatingXSHiggs --PO modes=ggH,qqH,VH,ttH --PO higgsMassRange=124,126 --PO ggHRange=-1:10 --PO qqHRange=-2:20 --PO VHRange=-2:20 --PO ttHRange=-2:20 "
 	}
 
@@ -532,7 +572,7 @@ def writeMultiDimFit(method=None,wsOnly=False):
 		"RProcScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # need to add option to run specific process
 		"RTopoScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # need to add option to run specific topologic categories
 		"RBinScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # need to add option to run specific topologic categories
-		"RDiffXsScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # need to add option to run specific topologic categories
+		"RDiffXsScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # 
 		}
 	par_ranges = {}
 	if opts.rvLow!=None and opts.rvHigh!=None and opts.rfLow!=None and opts.rfHigh!=None:
@@ -551,7 +591,7 @@ def writeMultiDimFit(method=None,wsOnly=False):
 		par_ranges["RProcScan"]	  = "%s=%4.2f,%4.2f"%(opts.poix,opts.muLow,opts.muHigh)
 		par_ranges["RTopoScan"]	  = "%s=%4.2f,%4.2f"%(opts.poix,opts.muLow,opts.muHigh)
 		par_ranges["RBinScan"]	  = "%s=%4.2f,%4.2f"%(opts.poix,opts.muLow,opts.muHigh)
-		par_ranges["RDiffXsScan"] = "%s=%4.2f,%4.2f"%(opts.poix,opts.muLow,opts.muHigh)
+		par_ranges["RDiffXsScan"] = "range=%4.2f,%4.2f"%(opts.muLow,opts.muHigh)
 	if opts.cvLow!=None and opts.cvHigh!=None and opts.cfLow!=None and opts.cfHigh!=None:
 		par_ranges["CVCFScan"]	  = "CV=%4.2f,%4.2f:CF=%4.2f,%4.2f"%(opts.cvLow,opts.cvHigh,opts.cfLow,opts.cfHigh)
 	if opts.kgamLow!=None and opts.kgamHigh!=None and opts.kgluLow!=None and opts.kgluHigh!=None:
@@ -579,6 +619,7 @@ def writeMultiDimFit(method=None,wsOnly=False):
                 if opts.parallel and opts.dryRun:
                     parallel.run(system,(exec_line,))
                 else:
+		    print "Creating ws with command line:",exec_line
                     system(exec_line)
         
 	if wsOnly:
