@@ -42,6 +42,12 @@ class UnfoldModel( PhysicsModel ):
 			if iBin>0: POIs+=","
 			POIs+="r_Bin%d"%iBin
 			if self.debug>0:print "Added Bin%d to the POIs"%iBin
+			if iBin==self.nBin-1:
+				if self.debug>0:print "   and set constant to the value 1 "
+		        	self.modelBuilder.out.var("r_Bin%d"%iBin).removeRange()
+		        	self.modelBuilder.out.var("r_Bin%d"%iBin).setVal(1)
+		        	self.modelBuilder.out.var("r_Bin%d"%iBin).setConstant(True)
+
 		# --- Higgs Mass as other parameter ----
 #		if self.options.mass != 0:
 #		    if self.modelBuilder.out.var("MH"):

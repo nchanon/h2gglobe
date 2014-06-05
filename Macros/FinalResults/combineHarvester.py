@@ -85,7 +85,7 @@ def getVariableBins(var,verbose=True):
                         VarDef = parts[1]
                 if parts[0] == 'varCatBoundaries':
                         VarCategoryBoundaries= parts[1]
-        nBins=0
+        nBins=-1
         if verbose: print "Boundaries ", 
         histBins=[]
         for bound in VarCategoryBoundaries.split(','):
@@ -93,7 +93,7 @@ def getVariableBins(var,verbose=True):
                         if verbose: print float(bound),
                         histBins.append(float(bound))
                         nBins +=1
-        if verbose: print " "
+        if verbose: print " nBins=",nBins
         return (nBins,histBins)
 
 
@@ -161,7 +161,7 @@ if not os.path.exists(os.path.expandvars('$CMSSW_BASE/bin/$SCRAM_ARCH/combineCar
 	sys.exit('ERROR - CombinedLimit package must be installed')
 
 cwd = os.getcwd()
-allowedMethods = ['Asymptotic','AsymptoticGrid','ProfileLikelihood','ChannelCompatibilityCheck','MultiPdfChannelCompatibility','MHScan','MHScanStat','MHScanNoGlob','MuScan','MuScanMHProf','RVScan','RFScan','RVRFScan','MuMHScan','GenerateOnly', 'RProcScan', 'RTopoScan', 'RBinScan','RDiffXsScan', 'MuVsMHScan','CVCFScan','KGluKGamScan']
+allowedMethods = ['Asymptotic','AsymptoticGrid','ProfileLikelihood','ChannelCompatibilityCheck','MultiPdfChannelCompatibility','MHScan','MHScanStat','MHScanNoGlob','MuScan','MuScanMHProf','RVScan','RFScan','RVRFScan','MuMHScan','GenerateOnly', 'RProcScan', 'RTopoScan', 'RBinScan','RDiffXsScan','RBinScanStat','RDiffXsScanStat', 'MuVsMHScan','CVCFScan','KGluKGamScan']
 
 if opts.parallel:
     parallel = Parallel(cpu_count())
@@ -170,7 +170,7 @@ if not opts.files and opts.datacard:
     opts.files = getFilesFromDatacard(opts.datacard)
 
 if opts.var and opts.var != "":
-	opts.nBins=getVariableBins(var,verbose=True)[0] 
+	opts.nBins=getVariableBins(opts.var,verbose=True)[0] 
 
 defaults = copy(opts)
 
@@ -500,7 +500,7 @@ def writeMultiDimFit(method=None,wsOnly=False):
         catsMap = opts.catsMap
 	if not method:
             method = opts.method            
-        if method == "RBinScan" and catsMap == "":
+        if (method == "RBinScan" or method=="RBinScanStat"  ) and catsMap == "":
             for ibin in range(opts.nBins):
                 binstr = " --PO map='.*cat"
                 comma = "("
@@ -512,7 +512,7 @@ def writeMultiDimFit(method=None,wsOnly=False):
                 catsMap += binstr
 
 	unfoldOptions=""
-	if method == 'RDiffXsScan':
+	if method == 'RDiffXsScan' or method == 'RDiffXsScanStat':
 		unfoldOptions +=" --PO nBin=%d"%(opts.nBins+1)
         
 	print 'Writing MultiDim Scan'
@@ -532,6 +532,8 @@ def writeMultiDimFit(method=None,wsOnly=False):
 		"RTopoScan"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel %s %s" % ( catsMap, profMH ),
 		"RBinScan"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel %s %s" % ( catsMap, profMH ),
                 "RDiffXsScan"	: "-P %s.AnalysisScripts.UnfoldModel:unfoldModel %s %s" % ( globe_name, profMH , unfoldOptions),
+		"RBinScanStat"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel %s %s" % ( catsMap, profMH ),
+                "RDiffXsScanStat": "-P %s.AnalysisScripts.UnfoldModel:unfoldModel %s %s" % ( globe_name, profMH , unfoldOptions),
 		"RProcScan"	: "-P HiggsAnalysis.CombinedLimit.PhysicsModel:floatingXSHiggs --PO modes=ggH,qqH,VH,ttH --PO higgsMassRange=124,126 --PO ggHRange=-1:10 --PO qqHRange=-2:20 --PO VHRange=-2:20 --PO ttHRange=-2:20 "
 	}
 
@@ -553,6 +555,8 @@ def writeMultiDimFit(method=None,wsOnly=False):
             "RTopoScan": [ "r_untag","r_qqHtag","r_VHtag","r_ttHtag" ],
             "RBinScan": [ "r_Bin%d" % i for i in range(opts.nBins) ],
             "RDiffXsScan": [ "r_Bin%d" % i for i in range(opts.nBins) ],
+            "RBinScanStat": [ "r_Bin%d" % i for i in range(opts.nBins) ],
+            "RDiffXsScanStat": [ "r_Bin%d" % i for i in range(opts.nBins) ],
             }
 	
 	combine_args = {
@@ -573,6 +577,8 @@ def writeMultiDimFit(method=None,wsOnly=False):
 		"RTopoScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # need to add option to run specific topologic categories
 		"RBinScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # need to add option to run specific topologic categories
 		"RDiffXsScan"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # 
+		"RBinScanStat"	: "--floatOtherPOIs=1 -P %s"%(opts.poix), # need to add option to run specific topologic categories
+		"RDiffXsScanStat": "--floatOtherPOIs=1 -P %s"%(opts.poix), # 
 		}
 	par_ranges = {}
 	if opts.rvLow!=None and opts.rvHigh!=None and opts.rfLow!=None and opts.rfHigh!=None:
@@ -592,6 +598,8 @@ def writeMultiDimFit(method=None,wsOnly=False):
 		par_ranges["RTopoScan"]	  = "%s=%4.2f,%4.2f"%(opts.poix,opts.muLow,opts.muHigh)
 		par_ranges["RBinScan"]	  = "%s=%4.2f,%4.2f"%(opts.poix,opts.muLow,opts.muHigh)
 		par_ranges["RDiffXsScan"] = "range=%4.2f,%4.2f"%(opts.muLow,opts.muHigh)
+		par_ranges["RBinScanStat"]	  = "%s=%4.2f,%4.2f"%(opts.poix,opts.muLow,opts.muHigh)
+		par_ranges["RDiffXsScanStat"] = "range=%4.2f,%4.2f"%(opts.muLow,opts.muHigh)
 	if opts.cvLow!=None and opts.cvHigh!=None and opts.cfLow!=None and opts.cfHigh!=None:
 		par_ranges["CVCFScan"]	  = "CV=%4.2f,%4.2f:CF=%4.2f,%4.2f"%(opts.cvLow,opts.cvHigh,opts.cfLow,opts.cfHigh)
 	if opts.kgamLow!=None and opts.kgamHigh!=None and opts.kgluLow!=None and opts.kgluHigh!=None:
@@ -605,6 +613,8 @@ def writeMultiDimFit(method=None,wsOnly=False):
 	# create specialised MultiDimFit workspace
 	backupcard = opts.datacard
 	if method=='MHScanStat':
+		makeStatOnlyCard()
+	if method=='RDiffXsScanStat' or method=='RBinScanStat':
 		makeStatOnlyCard()
 	if method=='MHScanNoGlob':
 		makeNoGlobCard()
@@ -769,6 +779,7 @@ def configure(config_line):
 		if option.startswith('nBins='): opts.nBins = int(option.split('=')[1])
                 if option.startswith('freezeAll='): opts.freezeAll = int(option.split('=')[1])
                 if option.startswith('float='): opts.float = str(option.split('=')[1])
+		if option.startswith('var='):opts.var=option.split('=')[1]
 		if option.startswith('opts='): 
 			addoptstr = option.split("=")[1:]
 			addoptstr = "=".join(addoptstr)
@@ -786,6 +797,8 @@ def configure(config_line):
 		if option == "skipWorkspace": opts.skipWorkspace = True
 		if option == "postFit":  opts.postFit = True
 		if option == "expected": opts.expected = 1
+	if opts.var and opts.var != "":
+		opts.nBins=getVariableBins(opts.var,verbose=True)[0] 
         if opts.postFitAll: opts.postFit = True
 	if opts.wspace : opts.skipWorkspace=True
 	if "-P" in opts.poix and (opts.muLow!=None or opts.muHigh!=None): sys.exit("Cannot specify muLow/muHigh with >1 POI. Remove the muLow/muHigh option and add use --setPhysicsModelParameterRanges in opts keyword") 
