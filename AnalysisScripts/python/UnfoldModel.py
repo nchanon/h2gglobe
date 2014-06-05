@@ -8,7 +8,7 @@ class UnfoldModel( PhysicsModel ):
 		PhysicsModel.__init__(self)
 		self.Range=[0.,4]
 		self.nBin=4
-		self.mHRange=None
+		self.mHRange=[]
 		self.debug=1
 
 	def setPhysicsOptions(self,physOptions):
@@ -25,11 +25,11 @@ class UnfoldModel( PhysicsModel ):
 			if po.startswith("higgsMassRange="):
 				if self.debug>0: print "setting higgs mass range floating:",po.replace("higgsMassRange=","").split(":")
 				self.mHRange=po.replace("higgsMassRange=","").split(",")
-			#checks
-			if len(self.mHRange) != 2:
-				raise RuntimeError, "Higgs mass range definition requires two extrema"
-			elif float(self.mHRange[0]) >= float(self.mHRange[1]):
-				raise RuntimeError, "Extrema for Higgs mass range defined with inverterd order. Second must be larger the first"
+				#checks
+				if len(self.mHRange) != 2:
+					raise RuntimeError, "Higgs mass range definition requires two extrema"
+				elif float(self.mHRange[0]) >= float(self.mHRange[1]):
+					raise RuntimeError, "Extrema for Higgs mass range defined with inverterd order. Second must be larger the first"
 			#verbose
 			if po.startswith("verbose"):
 				self.debug = 1
@@ -57,7 +57,7 @@ class UnfoldModel( PhysicsModel ):
 #		      self.modelBuilder.doVar("MH[%g]" % self.options.mass); 
 		poiNames=[]
 		if self.modelBuilder.out.var("MH"):
-		    if len(self.mHRange):
+		    if len(self.mHRange) == 2:
 		        print 'MH will be left floating within', self.mHRange[0], 'and', self.mHRange[1]
 		        self.modelBuilder.out.var("MH").setRange(float(self.mHRange[0]),float(self.mHRange[1]))
 		        self.modelBuilder.out.var("MH").setConstant(False)
@@ -67,7 +67,7 @@ class UnfoldModel( PhysicsModel ):
 		        self.modelBuilder.out.var("MH").removeRange()
 		        self.modelBuilder.out.var("MH").setVal(self.options.mass)
 		else:
-		    if len(self.mHRange):
+		    if len(self.mHRange) == 2:
 		        print 'MH will be left floating within', self.mHRange[0], 'and', self.mHRange[1]
 		        self.modelBuilder.doVar("MH[%s,%s]" % (self.mHRange[0],self.mHRange[1]))
 		        poiNames += [ 'MH' ]
