@@ -6,6 +6,7 @@
 - [Signal Fit](#user-content-signal-fit)
 - [Background envelope](#user-content-background-envelope)
 - [Combination and Results](#user-content-combination-and-results)
+- [Combine Harvester](#user-combine-harvester)
 - [Miscellaneous](#user-content-miscellaneous)
 
 ###Installation
@@ -177,6 +178,29 @@ python combinePlots.py \
 
 ~~~
 python makeResponseMatrix.py [options] CMS-HGG_sigfit.root
+~~~
+
+###Combine Harvester
+* The Final Plots should be done w/ combineHarvester.py, since it allows to do a lot of stuff.
+* To do it generate a configuration file for combineHarvester:
+
+~~~
+cd UnfoldAnalysis/Macros
+python generateCombOpts.py -v var
+~~~
+
+* Go in Macros FinalResults
+
+~~~
+cp Macros/FinalResults
+python combineHarvester.py -d combOpts.dat
+python combineHarvester.py -d combOpts.dat -q 8nh --skipWorkspace
+python combineHarvester.py --hadd var
+~~~
+
+* Now produce plots
+~~~
+python combinePlots2.py --help
 ~~~
 
 ###Miscellaneous
