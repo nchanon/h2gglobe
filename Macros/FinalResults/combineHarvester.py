@@ -621,7 +621,11 @@ def writeMultiDimFit(method=None,wsOnly=False):
 	if not opts.skipWorkspace:
 		datacardname = os.path.basename(opts.datacard).replace('.txt','')
 		print 'Creating workspace for %s...'%method
-		exec_line = 'text2workspace.py %s -o %s %s'%(os.path.abspath(opts.datacard),os.path.abspath(opts.datacard).replace('.txt',method+'.root'),ws_args[method]) 
+		in_datacard=os.path.abspath(opts.datacard)
+		out_datacard=os.path.abspath(opts.datacard).replace('.txt',method+'.root')
+		if opts.freezeAll:
+			out_datacard=os.path.abspath(opts.datacard).replace('.txt',method+'Stat.root')
+		exec_line = 'text2workspace.py %s -o %s %s'%(in_datacard,out_datacard,ws_args[method]) 
 		print exec_line
 		if opts.postFit:
                     exec_line += '&& combine -m 125 -M MultiDimFit --saveWorkspace -n %s_postFit %s' % ( datacardname+method, os.path.abspath(opts.datacard).replace('.txt',method+'.root') )
@@ -673,7 +677,10 @@ def writeMultiDimFit(method=None,wsOnly=False):
 		      opts.additionalOptions += " --setPhysicsModelParameters %s" %pars
 
 	else:
-		opts.datacard = opts.datacard.replace('.txt',method+'.root')
+		if opts.freezeAll:
+			opts.datacard = opts.datacard.replace('.txt',method+'Stat.root')
+		else:
+			opts.datacard = opts.datacard.replace('.txt',method+'.root')
         
             
             
