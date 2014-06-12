@@ -203,6 +203,16 @@ python combineHarvester.py --hadd var
 python combinePlots2.py --help
 ~~~
 
+###Signal Model and Composition Plots
+~~~
+cd UnfoldAnalysis/Macros
+root -l 
+.L $CMSSW_BASE/lib/$SCRAM_ARCH/libHiggsAnalysisCombinedLimit.so
+.L ../../libLoopAll.so
+.L makeParametricSignalModelPlots.C+g
+makeParametricSignalModelPlots("../../SimultaneousSignalFitting/CMS-HGG_sigfit_Njets.root", "signalModels_Njets", 125, true, true, "../../BackgroundProfileFitting/CMS-HGG_multipdf_Njets.root", 4, 12)
+~~~
+
 ###Miscellaneous
 * **screen**: a very useful tool. It spawn shell(s) that are kept alive running on the background of the machine, and you can re-attach them.
    usage on lxplus, is simple:
