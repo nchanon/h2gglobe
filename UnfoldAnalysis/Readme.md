@@ -6,7 +6,8 @@
 - [Signal Fit](#user-content-signal-fit)
 - [Background envelope](#user-content-background-envelope)
 - [Combination and Results](#user-content-combination-and-results)
-- [Combine Harvester](#user-combine-harvester)
+- [Combine Harvester](#user-content-combine-harvester)
+- [Signal Model and Composition Plots](#user-content-signal-model-and-composition-plots)
 - [Miscellaneous](#user-content-miscellaneous)
 
 ###Installation
