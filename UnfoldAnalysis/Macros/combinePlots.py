@@ -201,3 +201,6 @@ H.Draw("P SAME")
 C2.SaveAs("xSec_"+dir_.replace("/","")+".pdf")
 C2.SaveAs("xSec_"+dir_.replace("/","")+".png")
 C2.SaveAs("xSec_"+dir_.replace("/","")+".root")
+
+H.SaveAs("hist_xSec_"+dir_.replace("/","")+".root")
+HErr.SaveAs("hist_Error_xSec_"+dir_.replace("/","")+".root")

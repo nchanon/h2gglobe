@@ -238,9 +238,11 @@ def DrawNLL(dir="jobs",nBins=6,File="UnfoldScanExp"):
 
 	if 'Unfold' in File:
 		C.SaveAs("plots_nll_"+dir.replace("/","")+".pdf")
+		C.SaveAs("plots_nll_"+dir.replace("/","")+".png")
 		C.SaveAs("plots_nll_"+dir.replace("/","")+".root")
 	else:
 		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".pdf")
+		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".png")
 		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".root")
 
 
