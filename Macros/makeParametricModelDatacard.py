@@ -455,6 +455,8 @@ def printFileOptions():
 			else:
 				outFile.write('shapes %-10s %-15s %-30s %-30s\n'%(typ,'cat%d_%dTeV'%(c,sqrts),file,wsname+':'+pdfname))
 	outFile.write('\n')
+	outFile.write('---------------------------------------------\n')
+	outFile.write('\n')
 
 def printObsProcBinLines():
 	print 'Rates...'
@@ -511,6 +513,8 @@ def printObsProcBinLines():
 							scale = scaleFactors[globeProc[p]]
 					outFile.write('%7.1f '%(intL*scale))
 	outFile.write('\n')
+	outFile.write('\n')
+	outFile.write('---------------------------------------------\n')
 	outFile.write('\n')
 
 def printNuisParam(name,typ,sqrtS=None):
