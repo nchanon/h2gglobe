@@ -64,15 +64,15 @@ def getInterpolation(x=[1,2,3],y=[1,2,3],type='min',value=0.5):
 	a=  getDet(y,x,Unity)       / getDet(xSquare,x,Unity)
 	b=  getDet(xSquare,y,Unity) / getDet(xSquare,x,Unity)
 	c=  getDet(xSquare,x,y)     / getDet(xSquare,x,Unity)
-	print "--------------------"
-	print "(",x[0],",",y[0],")"
-	print "(",x[1],",",y[1],")"
-	print "(",x[2],",",y[2],")"
-	print "a=",a
-	print "b=",b
-	print "c=",c
-	print "val=",value
-	print "--------------------"
+	#print "--------------------"
+	#print "(",x[0],",",y[0],")"
+	#print "(",x[1],",",y[1],")"
+	#print "(",x[2],",",y[2],")"
+	#print "a=",a
+	#print "b=",b
+	#print "c=",c
+	#print "val=",value
+	#print "--------------------"
 	
 	if type=='min':
 		xmin=-b/(2.*a)
@@ -114,7 +114,7 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 			e2= max(valuesForErrors)
 		except ValueError: e1=e2=-1
 
-		print "(",x,",",y," - ",e1,",",e2,")"
+		#print "(",x,",",y," - ",e1,",",e2,")"
 
 		if Interpolate:	
 			#remove duplicates
@@ -130,8 +130,12 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 					xI=(values[i][0],values[i-1][0],values[i+1][0])
 					yI=(values[i][1],values[i-1][1],values[i+1][1])
 					#print "i=",i,"xI=",xI,"yI=",yI
-			print "--- min ---"
-			(x,y)=getInterpolation(xI,yI,'min')
+			#print "--- min ---"
+			try:
+				(x,y)=getInterpolation(xI,yI,'min')
+			except:
+				print "MINIMUM INTERP ERR: Switching off interpolation",xI,yI
+				return getMu(nBins,dir,File,sigma,Interpolate=False)
 
 			#1 -> if i_min>1 use the  -1 i +1, otherwise use the first three
 			e1=values[0][0]
@@ -144,8 +148,9 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 					xI=(values[i][0],values[i-1][0],values[i+1][0])
 					yI=(values[i][1],values[i-1][1],values[i+1][1])
 					try:
-					   print "--- e1 ---"
+					   #print "--- e1 ---"
 					   e1=getInterpolation(xI,yI,'val',y+ 0.5*sigma**2)[0]
+					   Ifailed=False
 					except:
 					   Ifailed=True
 			if Ifailed:
@@ -157,14 +162,15 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 					xI=(values[i][0],values[i-1][0],values[i+1][0])
 					yI=(values[i][1],values[i-1][1],values[i+1][1])
 					try:
-					   print "--- e2 ---"
+					   #print "--- e2 ---"
 					   e2=getInterpolation(xI,yI,'val',y+ 0.5*sigma**2)[1]
+					   Ifailed=False
 					except:
 					   Ifailed=True
 			if Ifailed:
 				print "->Interpolation failed"
 
-		print "-> (",x,",",y," - ",e1,",",e2,")"
+		#print "-> (",x,",",y," - ",e1,",",e2,")"
 		
 		#######
 		Mu.append( (x,e1,e2) )
@@ -236,15 +242,14 @@ def DrawNLL(dir="jobs",nBins=6,File="UnfoldScanExp"):
 		l_e2.Draw("L SAME")
 		obj.extend([l_e0,l_e1,l_e2])
 
-	if 'Unfold' in File:
-		C.SaveAs("plots_nll_"+dir.replace("/","")+".pdf")
-		C.SaveAs("plots_nll_"+dir.replace("/","")+".png")
-		C.SaveAs("plots_nll_"+dir.replace("/","")+".root")
-	else:
-		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".pdf")
-		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".png")
-		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".root")
-
+	extraString=""
+	if not 'Unfold' in File:
+		extraString+="reco"
+	if 'Stat' in File:
+		extraString+="_Stat"
+	C.SaveAs("plots_nll"+extraString+"_"+dir.replace("/","")+".pdf")
+	C.SaveAs("plots_nll"+extraString+"_"+dir.replace("/","")+".root")
+	C.SaveAs("plots_nll"+extraString+"_"+dir.replace("/","")+".png")
 
 def GetXsecSplines():
 	#load LoopAll -> Normalization
@@ -282,7 +287,7 @@ def GetXsecSplines():
 	xsSpline=ROOT.TSpline3("xsSpline",xsGraphs["tot"])
 	return (xsGraphs,xsSpline,brGraph,brSpline)
 
-def GetXsec(ws,mh,nBins,Lumi):
+def GetXsec(ws,mh,nBins,Lumi,extra=""):
 	(xsGraphs,xsSpline,brGraph,brSpline) = GetXsecSplines()
 	nEvents={}
 	Xsec=[]
@@ -291,7 +296,7 @@ def GetXsec(ws,mh,nBins,Lumi):
 	   eaGraph=ROOT.TGraph()
 	   eaGraph.SetName("effAcc")
 	   for m in masses:
-		nEvents[ (m,iBin)]= ws.data("sig_gen_Bin%d_mass_m%d_cat0"%(iBin,m)).sumEntries();
+		nEvents[ (m,iBin)]= ws.data("sig_gen_Bin%d%s_mass_m%d_cat0"%(iBin,extra,m)).sumEntries();
 		xSec=xsGraphs["tot"].Eval(m,xsSpline) *1000.  #pb->fb 
 		br=brGraph.Eval(m,brSpline)
 		effAcc= ( nEvents[ (m,iBin)]/ ( Lumi* xSec * br )  );

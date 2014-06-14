@@ -70,6 +70,15 @@ void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins)
 			for(int iBin=0;iBin<= nVarCategories;iBin++)
 			{
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_mass_m%d",iBin,sig),nDataBins);
+				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_vbf_mass_m%d",iBin,sig),nDataBins);
+				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_ggh_mass_m%d",iBin,sig),nDataBins);
+				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_tth_mass_m%d",iBin,sig),nDataBins);
+				if (!splitwzh)
+					l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_wzh_mass_m%d",iBin,sig),nDataBins);
+				else{
+					l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_wh_mass_m%d",iBin,sig),nDataBins);
+					l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_zh_mass_m%d",iBin,sig),nDataBins);
+				}
 			}
 			l.rooContainer->SetNCategories(nCategories_);
 		}
@@ -386,8 +395,13 @@ bool UnfoldAnalysis::Analysis(LoopAll& l, Int_t jentry){
 	if (bin>=0 && doUnfoldHisto && g1>=0 && g2>=0 ){
 		float HiggsPt= ( *((TLorentzVector*)l.gp_p4->At(g1)) + *((TLorentzVector*)l.gp_p4->At(g2)) ).Pt();
 		// VERY VERBOSE
-		if(UDEBUG>1)cout<<" Going to Fill: << Bin:"<<bin<<" mass:"<<l.normalizer()->GetMass(cur_type)<<" weight:"<<(float)l.sampleContainer[l.current_sample_index].weight() * PtReweight(HiggsPt,cur_type) <<endl;
-		l.rooContainer->InputDataPoint(Form("sig_gen_Bin%d_mass_m%d",bin,int(l.normalizer()->GetMass(cur_type)) ), 0 ,l.normalizer()->GetMass(cur_type) , (float)l.sampleContainer[l.current_sample_index].weight() * PtReweight(HiggsPt,cur_type) );
+		float weight=l.sampleContainer[l.current_sample_index].weight() * PtReweight(HiggsPt,cur_type);
+		int mass=int(l.normalizer()->GetMass(cur_type));
+		if(UDEBUG>1)cout<<" Going to Fill: << Bin:"<<bin<<" mass:"<<l.normalizer()->GetMass(cur_type)<<" weight:"<<weight<<endl;
+		l.rooContainer->InputDataPoint(Form("sig_gen_Bin%d_mass_m%d",bin,mass ), 0 ,mass , weight );
+		//process splitting
+		//sig_gen_Bin4wh_mass_m130_cat0
+		l.rooContainer->InputDataPoint(Form("sig_gen_Bin%d_",bin)+GetSignalLabel(cur_type, l),0, mass ,weight );
 	}
 //implementation of gen level histograms
 	return r;

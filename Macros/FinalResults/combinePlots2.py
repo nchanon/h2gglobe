@@ -24,6 +24,7 @@ if __name__=="__main__":
 	parser.add_option("-D","--dir" ,dest='dir',type='string',help="Directory. Default=%default",default=dir_)
 	parser.add_option("-s","" ,dest='sig',type='string',help="Ws Sig not fitted. Default=%default",default=wsFile_)
 	parser.add_option("-v","--var" ,dest='var',type='string',help="Variable. If non null read bins from the var file. Default=%default",default="")
+	parser.add_option("-k","--split" ,dest='split',action='store_true',help="Add split info for root files for Nicolas (>v5). Default=%default",default=False)
 	(options,args)=parser.parse_args()
 	dir_=options.dir
         wsFile_=options.sig
@@ -74,6 +75,8 @@ else:
 ## Draw Canvas nll##
 DrawNLL(dir_,nBins_)
 DrawNLL(dir_,nBins_,"RecoScanExp")
+DrawNLL(dir_,nBins_,"RecoScanStatExp")
+DrawNLL(dir_,nBins_,"UnfoldScanStatExp")
 
 ### Get The Histograms  and normalize to the total xSec
 
@@ -83,17 +86,29 @@ f=ROOT.TFile.Open(wsFile_)
 ws=f.Get("cms_hgg_workspace")
 
 xSecPerBin=GetXsec(ws,mass_,nBins_,Lumi)
+if options.split:
+	xSecSplit={}
+	HSplit={}
+	procs=["ggh","vbf","wh","zh","tth"]
+	for p in procs:
+		xSecSplit[p]=GetXsec(ws,mass_,nBins_,Lumi,"_"+p)
+		HSplit[p]=ROOT.TH1F("HExp_"+p,"HExpected "+p,nBins_,histBins)
 
 C2=ROOT.TCanvas("c2","c2")
 (Mu,Graphs) = getMu(nBins_,dir_)
 ROOT.gStyle.SetErrorX(0)
 ROOT.gStyle.SetOptStat(0)
-H=ROOT.TH1F("h","Data",nBins_,histBins);
-HErr=ROOT.TH1F("h","Error",nBins_,histBins);
+H=ROOT.TH1F("data","Data",nBins_,histBins);
+HErr=ROOT.TH1F("error","Error",nBins_,histBins);
 HExp=ROOT.TH1F("Expected","Expected",nBins_,histBins);
+
 for iBin in range(0,nBins_):
 	print "Mu ",Mu[iBin][0], "+-", Mu[iBin][1],Mu[iBin][2]
 	HExp.SetBinContent( iBin+1, xSecPerBin[iBin]/H.GetBinWidth(iBin+1) )
+	if options.split:
+		for p in procs:
+			HSplit[p].SetBinContent(iBin+1, xSecSplit[p][iBin]/H.GetBinWidth(iBin+1))
+
 	low =xSecPerBin[iBin]/H.GetBinWidth(iBin+1) *Mu[iBin][1]
 	high=xSecPerBin[iBin]/H.GetBinWidth(iBin+1) *Mu[iBin][2]
 	HErr.SetBinContent(iBin+1, (low+high)/2)
@@ -110,8 +125,17 @@ H.Draw("P SAME")
 
 C2.SaveAs("xSec_"+dir_.replace("/","")+".pdf")
 C2.SaveAs("xSec_"+dir_.replace("/","")+".png")
-C2.SaveAs("xSec_"+dir_.replace("/","")+".root")
-
+C2.SaveAs("xSec_"+dir_.replace("/","")+".root") #will be deleted by the next line if split
+f=ROOT.TFile("xSec_"+dir_.replace("/","")+".root","UPDATE")
+f.cd()
+H.Write()
+HExp.Write()
+HErr.Write()
+if options.split:
+	for p in procs:
+		HSplit[p].Write()
+f.Close()
+	
 
 
 C3=ROOT.TCanvas("c3","c3",800,800)
@@ -133,22 +157,33 @@ h_MuR.SetName("muR")
 h_MuRS=ROOT.TGraphAsymmErrors()
 h_MuRS.SetName("muRS")
 
+MuFile =open("Mu_"+dir_.replace("/","")+".pdf")
 
 xerr=0.1
 for iBin in range(0,nBins_):
 	h.GetXaxis().SetBinLabel(iBin+1,"Bin%d"%iBin)
 	h_MuU.SetPoint(iBin,iBin+0.35, MuU[iBin][0])
-	h_MuU.SetPointError(iBin,xerr,xerr ,1.- MuU[iBin][1]  ,MuU[iBin][2] - 1.)
+	h_MuU.SetPointError(iBin,xerr,xerr ,MuU[iBin][0]- MuU[iBin][1]  ,MuU[iBin][2] - MuU[iBin][0])
 
 	h_MuUS.SetPoint(iBin,iBin+0.35, MuUS[iBin][0])
-	h_MuUS.SetPointError(iBin,xerr*.9,xerr*.9 ,1.- MuUS[iBin][1], MuUS[iBin][2] - 1.)
+	h_MuUS.SetPointError(iBin,xerr*.9,xerr*.9 ,MuUS[iBin][0]- MuUS[iBin][1], MuUS[iBin][2] - MuUS[iBin][0])
 
 	h_MuR.SetPoint(iBin,iBin+0.65, MuR[iBin][0])
-	h_MuR.SetPointError(iBin,xerr, xerr,1.- MuR[iBin][1]  , MuR[iBin][2] - 1.)
+	h_MuR.SetPointError(iBin,xerr, xerr,MuR[iBin][0]- MuR[iBin][1]  , MuR[iBin][2] - MuR[iBin][0])
 
 	h_MuRS.SetPoint(iBin,iBin+0.65, MuRS[iBin][0])
-	h_MuRS.SetPointError(iBin,xerr*.9, xerr *.9,1.- MuRS[iBin][1], MuRS[iBin][2] - 1.)
+	h_MuRS.SetPointError(iBin,xerr*.9, xerr *.9,MuRS[iBin][0]- MuRS[iBin][1], MuRS[iBin][2] - MuRS[iBin][0])
 
+MuFile =open("Mu_"+dir_.replace("/","")+".txt","w")
+
+for iBin in range(0,nBins_):
+	print "Mu Bin%d"%iBin,MuU[iBin][0], "+-", MuU[iBin][1],MuU[iBin][2]
+	print>>MuFile, "Mu Bin%d"%iBin,MuU[iBin][0], "+-", MuU[iBin][0]-MuU[iBin][1],MuU[iBin][2] - MuU[iBin][0]
+print >>MuFile
+for iBin in range(0,nBins_):
+	print>>MuFile, "MuStat Bin%d"%iBin,MuUS[iBin][0], "+-", MuUS[iBin][0]-MuUS[iBin][1],MuUS[iBin][2] - MuUS[iBin][0]
+
+print >>MuFile
 #Style
 
 ROOT.gStyle.SetOptStat(0)
@@ -177,6 +212,7 @@ h_MuRS.Draw("E2 SAME")
 #redraw P on top X=no error
 h_MuU.Draw("P X SAME")
 h_MuR.Draw("P X SAME")
+
 
 C3.SaveAs("Mu_"+dir_.replace("/","")+".pdf")
 C3.SaveAs("Mu_"+dir_.replace("/","")+".png")
