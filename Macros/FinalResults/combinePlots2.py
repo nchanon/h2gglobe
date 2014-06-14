@@ -75,6 +75,8 @@ else:
 ## Draw Canvas nll##
 DrawNLL(dir_,nBins_)
 DrawNLL(dir_,nBins_,"RecoScanExp")
+DrawNLL(dir_,nBins_,"RecoScanStatExp")
+DrawNLL(dir_,nBins_,"UnfoldScanStatExp")
 
 ### Get The Histograms  and normalize to the total xSec
 
@@ -99,12 +101,13 @@ ROOT.gStyle.SetOptStat(0)
 H=ROOT.TH1F("data","Data",nBins_,histBins);
 HErr=ROOT.TH1F("error","Error",nBins_,histBins);
 HExp=ROOT.TH1F("Expected","Expected",nBins_,histBins);
+
 for iBin in range(0,nBins_):
 	print "Mu ",Mu[iBin][0], "+-", Mu[iBin][1],Mu[iBin][2]
 	HExp.SetBinContent( iBin+1, xSecPerBin[iBin]/H.GetBinWidth(iBin+1) )
 	if options.split:
 		for p in procs:
-			HSplit[p].SetBinContent(iBin+1, xSecSplit[p][iBin])
+			HSplit[p].SetBinContent(iBin+1, xSecSplit[p][iBin]/H.GetBinWidth(iBin+1))
 
 	low =xSecPerBin[iBin]/H.GetBinWidth(iBin+1) *Mu[iBin][1]
 	high=xSecPerBin[iBin]/H.GetBinWidth(iBin+1) *Mu[iBin][2]
@@ -154,22 +157,33 @@ h_MuR.SetName("muR")
 h_MuRS=ROOT.TGraphAsymmErrors()
 h_MuRS.SetName("muRS")
 
+MuFile =open("Mu_"+dir_.replace("/","")+".pdf")
 
 xerr=0.1
 for iBin in range(0,nBins_):
 	h.GetXaxis().SetBinLabel(iBin+1,"Bin%d"%iBin)
 	h_MuU.SetPoint(iBin,iBin+0.35, MuU[iBin][0])
-	h_MuU.SetPointError(iBin,xerr,xerr ,1.- MuU[iBin][1]  ,MuU[iBin][2] - 1.)
+	h_MuU.SetPointError(iBin,xerr,xerr ,MuU[iBin][0]- MuU[iBin][1]  ,MuU[iBin][2] - MuU[iBin][0])
 
 	h_MuUS.SetPoint(iBin,iBin+0.35, MuUS[iBin][0])
-	h_MuUS.SetPointError(iBin,xerr*.9,xerr*.9 ,1.- MuUS[iBin][1], MuUS[iBin][2] - 1.)
+	h_MuUS.SetPointError(iBin,xerr*.9,xerr*.9 ,MuUS[iBin][0]- MuUS[iBin][1], MuUS[iBin][2] - MuUS[iBin][0])
 
 	h_MuR.SetPoint(iBin,iBin+0.65, MuR[iBin][0])
-	h_MuR.SetPointError(iBin,xerr, xerr,1.- MuR[iBin][1]  , MuR[iBin][2] - 1.)
+	h_MuR.SetPointError(iBin,xerr, xerr,MuR[iBin][0]- MuR[iBin][1]  , MuR[iBin][2] - MuR[iBin][0])
 
 	h_MuRS.SetPoint(iBin,iBin+0.65, MuRS[iBin][0])
-	h_MuRS.SetPointError(iBin,xerr*.9, xerr *.9,1.- MuRS[iBin][1], MuRS[iBin][2] - 1.)
+	h_MuRS.SetPointError(iBin,xerr*.9, xerr *.9,MuRS[iBin][0]- MuRS[iBin][1], MuRS[iBin][2] - MuRS[iBin][0])
 
+MuFile =open("Mu_"+dir_.replace("/","")+".txt","w")
+
+for iBin in range(0,nBins_):
+	print "Mu Bin%d"%iBin,MuU[iBin][0], "+-", MuU[iBin][1],MuU[iBin][2]
+	print>>MuFile, "Mu Bin%d"%iBin,MuU[iBin][0], "+-", MuU[iBin][0]-MuU[iBin][1],MuU[iBin][2] - MuU[iBin][0]
+print >>MuFile
+for iBin in range(0,nBins_):
+	print>>MuFile, "MuStat Bin%d"%iBin,MuUS[iBin][0], "+-", MuUS[iBin][0]-MuUS[iBin][1],MuUS[iBin][2] - MuUS[iBin][0]
+
+print >>MuFile
 #Style
 
 ROOT.gStyle.SetOptStat(0)

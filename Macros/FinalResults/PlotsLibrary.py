@@ -131,7 +131,11 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 					yI=(values[i][1],values[i-1][1],values[i+1][1])
 					#print "i=",i,"xI=",xI,"yI=",yI
 			#print "--- min ---"
-			(x,y)=getInterpolation(xI,yI,'min')
+			try:
+				(x,y)=getInterpolation(xI,yI,'min')
+			except:
+				print "MINIMUM INTERP ERR: Switching off interpolation",xI,yI
+				return getMu(nBins,dir,File,sigma,Interpolate=False)
 
 			#1 -> if i_min>1 use the  -1 i +1, otherwise use the first three
 			e1=values[0][0]
@@ -238,12 +242,14 @@ def DrawNLL(dir="jobs",nBins=6,File="UnfoldScanExp"):
 		l_e2.Draw("L SAME")
 		obj.extend([l_e0,l_e1,l_e2])
 
-	if 'Unfold' in File:
-		C.SaveAs("plots_nll_"+dir.replace("/","")+".pdf")
-		C.SaveAs("plots_nll_"+dir.replace("/","")+".root")
-	else:
-		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".pdf")
-		C.SaveAs("plots_nllreco_"+dir.replace("/","")+".root")
+	extraString=""
+	if not 'Unfold' in File:
+		extraString+="reco"
+	if 'Stat' in File:
+		extraString+="_Stat"
+	C.SaveAs("plots_nll"+extraString+"_"+dir.replace("/","")+".pdf")
+	C.SaveAs("plots_nll"+extraString+"_"+dir.replace("/","")+".root")
+	C.SaveAs("plots_nll"+extraString+"_"+dir.replace("/","")+".png")
 
 
 def GetXsecSplines():
