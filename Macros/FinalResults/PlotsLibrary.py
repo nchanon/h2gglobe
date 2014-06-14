@@ -64,15 +64,15 @@ def getInterpolation(x=[1,2,3],y=[1,2,3],type='min',value=0.5):
 	a=  getDet(y,x,Unity)       / getDet(xSquare,x,Unity)
 	b=  getDet(xSquare,y,Unity) / getDet(xSquare,x,Unity)
 	c=  getDet(xSquare,x,y)     / getDet(xSquare,x,Unity)
-	print "--------------------"
-	print "(",x[0],",",y[0],")"
-	print "(",x[1],",",y[1],")"
-	print "(",x[2],",",y[2],")"
-	print "a=",a
-	print "b=",b
-	print "c=",c
-	print "val=",value
-	print "--------------------"
+	#print "--------------------"
+	#print "(",x[0],",",y[0],")"
+	#print "(",x[1],",",y[1],")"
+	#print "(",x[2],",",y[2],")"
+	#print "a=",a
+	#print "b=",b
+	#print "c=",c
+	#print "val=",value
+	#print "--------------------"
 	
 	if type=='min':
 		xmin=-b/(2.*a)
@@ -114,7 +114,7 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 			e2= max(valuesForErrors)
 		except ValueError: e1=e2=-1
 
-		print "(",x,",",y," - ",e1,",",e2,")"
+		#print "(",x,",",y," - ",e1,",",e2,")"
 
 		if Interpolate:	
 			#remove duplicates
@@ -130,7 +130,7 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 					xI=(values[i][0],values[i-1][0],values[i+1][0])
 					yI=(values[i][1],values[i-1][1],values[i+1][1])
 					#print "i=",i,"xI=",xI,"yI=",yI
-			print "--- min ---"
+			#print "--- min ---"
 			(x,y)=getInterpolation(xI,yI,'min')
 
 			#1 -> if i_min>1 use the  -1 i +1, otherwise use the first three
@@ -144,8 +144,9 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 					xI=(values[i][0],values[i-1][0],values[i+1][0])
 					yI=(values[i][1],values[i-1][1],values[i+1][1])
 					try:
-					   print "--- e1 ---"
+					   #print "--- e1 ---"
 					   e1=getInterpolation(xI,yI,'val',y+ 0.5*sigma**2)[0]
+					   Ifailed=False
 					except:
 					   Ifailed=True
 			if Ifailed:
@@ -157,14 +158,15 @@ def getMu(nBins=6,dir="jobs",File="UnfoldScanExp",sigma=1,Interpolate=True):
 					xI=(values[i][0],values[i-1][0],values[i+1][0])
 					yI=(values[i][1],values[i-1][1],values[i+1][1])
 					try:
-					   print "--- e2 ---"
+					   #print "--- e2 ---"
 					   e2=getInterpolation(xI,yI,'val',y+ 0.5*sigma**2)[1]
+					   Ifailed=False
 					except:
 					   Ifailed=True
 			if Ifailed:
 				print "->Interpolation failed"
 
-		print "-> (",x,",",y," - ",e1,",",e2,")"
+		#print "-> (",x,",",y," - ",e1,",",e2,")"
 		
 		#######
 		Mu.append( (x,e1,e2) )
@@ -280,7 +282,7 @@ def GetXsecSplines():
 	xsSpline=ROOT.TSpline3("xsSpline",xsGraphs["tot"])
 	return (xsGraphs,xsSpline,brGraph,brSpline)
 
-def GetXsec(ws,mh,nBins,Lumi):
+def GetXsec(ws,mh,nBins,Lumi,extra=""):
 	(xsGraphs,xsSpline,brGraph,brSpline) = GetXsecSplines()
 	nEvents={}
 	Xsec=[]
@@ -289,7 +291,7 @@ def GetXsec(ws,mh,nBins,Lumi):
 	   eaGraph=ROOT.TGraph()
 	   eaGraph.SetName("effAcc")
 	   for m in masses:
-		nEvents[ (m,iBin)]= ws.data("sig_gen_Bin%d_mass_m%d_cat0"%(iBin,m)).sumEntries();
+		nEvents[ (m,iBin)]= ws.data("sig_gen_Bin%d%s_mass_m%d_cat0"%(iBin,extra,m)).sumEntries();
 		xSec=xsGraphs["tot"].Eval(m,xsSpline) *1000.  #pb->fb 
 		br=brGraph.Eval(m,brSpline)
 		effAcc= ( nEvents[ (m,iBin)]/ ( Lumi* xSec * br )  );
