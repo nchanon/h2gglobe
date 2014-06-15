@@ -157,7 +157,6 @@ h_MuR.SetName("muR")
 h_MuRS=ROOT.TGraphAsymmErrors()
 h_MuRS.SetName("muRS")
 
-MuFile =open("Mu_"+dir_.replace("/","")+".pdf")
 
 xerr=0.1
 for iBin in range(0,nBins_):
