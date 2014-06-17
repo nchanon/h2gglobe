@@ -215,6 +215,17 @@ makeParametricSignalModelPlots("CMS-HGG_sigfit_Njets.root", "signalModels_Njets"
 ~~~
 * the parameters to pass to the functions are: signal fit workspace, output directory, MH, bool for blinded results, bool to create the tex table, background workspace, nBins+1, nCats.
 
+###S+B with Fit Plots
+* Before doing the plots check in test/BackgroundProfileTest.cpp that your favorite variable categorization is implemented in defineLabels(...). I have implemented many of them but not all. Then to make a single plot:
+~~~
+cd BackgroundProfileFitting
+./bin/makeBkgPlots -b CMS-HGG_multipdf_CosThetaStar.root -s ../SimultaneousSignalFitting/CMS-HGG_sigfit_CosThetaStar.root -o mva_8TeV_bkgPlots/BkgPlots_cat0.root -d mva_8TeV_bkgPlots -c 0 --var CosThetaStar --sqrts 8  --doBands --massStep 2.000 --nllTolerance 0.050 --isMultiPdf --useBinnedData --blind
+
+* A similar script allows to make in parallel more categories:
+~~~~
+ ./scripts/subBkgPlots.py -b CMS-HGG_multipdf_CosThetaStar.root -s ../SimultaneousSignalFitting/CMS-HGG_sigfit_CosThetaStar.root -d costheta_bkgPlots --blind -c 18 --sqrts 8  --doBands --massStep 2.000 --nllTolerance 0.050 --isMultiPdf --useBinnedData --blind -q cmscaf1nd
+
+
 ###Miscellaneous
 * **screen**: a very useful tool. It spawn shell(s) that are kept alive running on the background of the machine, and you can re-attach them.
    usage on lxplus, is simple:
