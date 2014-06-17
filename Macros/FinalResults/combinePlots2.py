@@ -157,7 +157,6 @@ h_MuR.SetName("muR")
 h_MuRS=ROOT.TGraphAsymmErrors()
 h_MuRS.SetName("muRS")
 
-MuFile =open("Mu_"+dir_.replace("/","")+".pdf")
 
 xerr=0.1
 for iBin in range(0,nBins_):
@@ -176,12 +175,34 @@ for iBin in range(0,nBins_):
 
 MuFile =open("Mu_"+dir_.replace("/","")+".txt","w")
 
+print >>MuFile,"\\begin{table}[bp]"
+print >>MuFile,"\\centering"
+print >>MuFile,"\\begin{tabular}{|c|c|c|c|}"
+print >>MuFile,"\\hline"
+print >>MuFile,"\\textbf{Bin Number} & \\textbf{$\\mu$} & \\textbf{Negative error} & \\textbf{positive error} \\\\"
+print >>MuFile,"\\hline"
 for iBin in range(0,nBins_):
 	print "Mu Bin%d"%iBin,MuU[iBin][0], "+-", MuU[iBin][1],MuU[iBin][2]
-	print>>MuFile, "Mu Bin%d"%iBin,MuU[iBin][0], "+-", MuU[iBin][0]-MuU[iBin][1],MuU[iBin][2] - MuU[iBin][0]
+	print>>MuFile, "Bin%d"%iBin,"& $",MuU[iBin][0], "$ & $", MuU[iBin][0]-MuU[iBin][1],"$ & $",MuU[iBin][2] - MuU[iBin][0],"$ \\\\"
+print >>MuFile,"\\hline"
+print >>MuFile,"\\end{tabular}"
+print >>MuFile,"\\caption{Expected signal-strength stat+syst for %s.}"%options.var
+print >>MuFile,"\\end{table}"
 print >>MuFile
+
+print >>MuFile,"%%%%%%%%%%%%%%% STAT ONLY %%%%%%%%%%%%%%%%%%"
+print >>MuFile,"%%\\begin{table}[bp]"
+print >>MuFile,"%%\\centering"
+print >>MuFile,"%%\\begin{tabular}{|c|c|c|c|}"
+print >>MuFile,"%%\\hline"
+print >>MuFile,"%%\\textbf{Bin Number} & \\textbf{$\\mu$} & \\textbf{Negative error} & \\textbf{positive error} \\\\"
+print >>MuFile,"%%\\hline"
 for iBin in range(0,nBins_):
-	print>>MuFile, "MuStat Bin%d"%iBin,MuUS[iBin][0], "+-", MuUS[iBin][0]-MuUS[iBin][1],MuUS[iBin][2] - MuUS[iBin][0]
+	print>>MuFile, "%%%%Bin%d"%iBin,"& $",MuUS[iBin][0], "$ & $", MuUS[iBin][0]-MuUS[iBin][1],"$ & $",MuUS[iBin][2] - MuUS[iBin][0],"$ \\\\"
+print >>MuFile,"%%\\hline"
+print >>MuFile,"%%\\end{tabular}"
+print >>MuFile,"%%%%\\caption{Expected signal-strength stat-only for %s.}"%(options.var)
+print >>MuFile,"\\end{table}"
 
 print >>MuFile
 #Style
