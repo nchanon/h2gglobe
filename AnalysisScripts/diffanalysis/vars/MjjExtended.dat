@@ -2,6 +2,6 @@
 VarDef=Mjj
 nVarCategories=4
 JetEtaForDiffAnalysis=4.7
-varCatBoundaries=0.,153.,455,2000.,7000.
+varCatBoundaries=0.,153.,455,1000.,7000.
 bkgPolOrderByCat=5,5,5,5,5,5,5,5,5,5,5,5
 

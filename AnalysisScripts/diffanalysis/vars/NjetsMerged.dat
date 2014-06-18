@@ -1,0 +1,8 @@
+
+VarDef=Njets
+nVarCategories=4
+varCatBoundaries=0,1,2,3,4
+
+########### MERGING CATEGORIES: only one that includes the 1st two
+sigmaMoMCategoryBoundaries=0.0128,0
+bkgPolOrderByCat=3,3,3,3
