@@ -1,0 +1,5 @@
+VarDef=Njets
+nVarCategories=4
+JetEtaForDiffAnalysis=4.7
+varCatBoundaries=0,1,2,3,4
+bkgPolOrderByCat=5,4,3,3,5,4,3,3,5,4,4,4
