@@ -1161,13 +1161,14 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
         // sanity check
         assert( evweight >= 0. );
 
-        // see if the event falls into an exclusive category
-        computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt(), Higgs.M() );
-
-        // if doing the spin analysis calculate new category
-        if (doSpinAnalysis) computeSpinCategory(l, category, lead_p4, sublead_p4);
 	if (doDifferentialAnalysis) {
 	    computeDifferentialVariableCategory(l, category, lead_p4, sublead_p4, diphoton_id, &smeared_pho_energy[0]);
+	} else {
+	    // see if the event falls into an exclusive category
+	    computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt(), Higgs.M() );
+	    
+	    // if doing the spin analysis calculate new category
+	    if (doSpinAnalysis) computeSpinCategory(l, category, lead_p4, sublead_p4);
 	}
 
         // fill control plots and counters
