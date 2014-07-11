@@ -27,8 +27,11 @@ void UnfoldAnalysis::Init(LoopAll&l){
 	cout<<"varCatBoundaries=";
 	for(int i=0;i<varCatBoundaries.size();i++)cout<<varCatBoundaries[i]<<",";
 	cout<<endl;
-
+	cout <<"doOutOfJetAcceptance="<<doOutOfJetAcceptance<<endl;
+	cout <<"doProcessSplitting="<<doProcessSplitting<<endl;
+	
 	cout<<"----------------------------------------------------------------------------------------------------"<<endl;
+
 
 }
 
@@ -37,6 +40,10 @@ void UnfoldAnalysis::Init(LoopAll&l){
 // -------------------------------------------------------------------------------------------
 void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins) 
 {
+
+  extraBinOutOfJetAcc = 0;
+  if (doOutOfJetAcceptance) extraBinOutOfJetAcc = 1;
+  cout << "extraBinOutOfJetAcc="<<extraBinOutOfJetAcc<<endl;
 
 	UnfoldBaseClass::bookSignalModel(l,nDataBins);
 
@@ -53,22 +60,55 @@ void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins)
 		int sig = sigPointsToBook[isig];
 		if (doUnfoldHisto) // here: don't care about sigProc
 		{
+
+
 			//for(int iCat=0;iCat<nCategories_/nVarCategories;iCat++)
 			//for(int iCat=0;iCat<nCategories_;iCat++)
-			for(int iBin=0;iBin<= nVarCategories;iBin++)
+			for(int iBin=0;iBin<= nVarCategories+extraBinOutOfJetAcc;iBin++)
 			{
+
 				//should be used for syst
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_mass_m%d",iBin,sig),nDataBins);
 				//signal model for right and wrong vertex
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_mass_m%d_rv",iBin,sig),nDataBins);
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_mass_m%d_wv",iBin,sig),nDataBins);
+
+				if (doProcessSplitting){
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_vbf_mass_m%d",iBin,sig),nDataBins);
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_vbf_mass_m%d_rv",iBin,sig),nDataBins);
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_vbf_mass_m%d_wv",iBin,sig),nDataBins);
+
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_ggh_mass_m%d",iBin,sig),nDataBins);
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_ggh_mass_m%d_rv",iBin,sig),nDataBins);
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_ggh_mass_m%d_wv",iBin,sig),nDataBins);	
+				  
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_tth_mass_m%d",iBin,sig),nDataBins);
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_tth_mass_m%d_rv",iBin,sig),nDataBins);
+				  l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_tth_mass_m%d_wv",iBin,sig),nDataBins);
+				  
+				  if (!splitwzh){
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_wzh_mass_m%d",iBin,sig),nDataBins);
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_wzh_mass_m%d_rv",iBin,sig),nDataBins);
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_wzh_mass_m%d_wv",iBin,sig),nDataBins);
+				  }
+				  else{
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_wh_mass_m%d",iBin,sig),nDataBins);
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_wh_mass_m%d_rv",iBin,sig),nDataBins);
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_wh_mass_m%d_wv",iBin,sig),nDataBins);
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_zh_mass_m%d",iBin,sig),nDataBins);
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_zh_mass_m%d_rv",iBin,sig),nDataBins);
+				    l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_Bin%d_zh_mass_m%d_wv",iBin,sig),nDataBins);
+				  }
+				}
 			}
 			//genLevel Histograms -
 			// book only 1 cat
 			assert(l.rooContainer->ncat == nCategories_);
 			l.rooContainer->SetNCategories(1);
-			for(int iBin=0;iBin<= nVarCategories;iBin++)
+			for(int iBin=0;iBin<= nVarCategories+extraBinOutOfJetAcc;iBin++)
 			{
+			  cout << "Creating "<< Form("sig_gen_Bin%d_mass_m%d",iBin,sig) <<endl;
+
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_mass_m%d",iBin,sig),nDataBins);
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_vbf_mass_m%d",iBin,sig),nDataBins);
 				l.rooContainer->CreateDataSet("CMS_hgg_mass",Form("sig_gen_Bin%d_ggh_mass_m%d",iBin,sig),nDataBins);
@@ -87,9 +127,22 @@ void UnfoldAnalysis::bookSignalModel(LoopAll& l, Int_t nDataBins)
 	// Make more datasets representing Systematic Shifts of various quantities
 	for(size_t isig=0; isig<sigPointsToBook.size(); ++isig) {
 		int sig = sigPointsToBook[isig];
-		for(int iBin=0;iBin<= nVarCategories;iBin++){
+		for(int iBin=0;iBin<= nVarCategories+extraBinOutOfJetAcc;iBin++){
 			// sig_Bin%d_mass_m%d
 			l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_mass_m%d",iBin,sig),-1);
+
+			if (doProcessSplitting){
+			  l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_ggh_mass_m%d",iBin,sig),-1);
+			  l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_vbf_mass_m%d",iBin,sig),-1);
+			  l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_tth_mass_m%d",iBin,sig),-1);
+			  if (!splitwzh)
+			    l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_wzh_mass_m%d",iBin,sig),-1);
+			  else{
+			    l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_wh_mass_m%d",iBin,sig),-1);
+			    l.rooContainer->MakeSystematics("CMS_hgg_mass",Form("sig_Bin%d_zh_mass_m%d",iBin,sig),-1);
+			  }
+			}
+			
 		}//end loop sigProcess
 	}//end for sigPointsToBook
 	
@@ -113,13 +166,25 @@ void UnfoldAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, floa
 	{
 		if(UDEBUG)cout<<" -- Fill RooContainer -- "<<endl;
 		bin= computeGenBin(l,cur_type)	;
-		if ( bin<0 ) bin=nVarCategories;
-	
+		if ( bin<0 && !doOutOfJetAcceptance) bin=nVarCategories;
+		else {
+		  if (bin==-2 && doOutOfJetAcceptance) bin=nVarCategories;
+		  if (bin==-1 && doOutOfJetAcceptance) bin=nVarCategories+1;
+		}
+
 		//all 
 		l.rooContainer->InputDataPoint(Form("sig_Bin%d_mass_m%.0f",bin,l.normalizer()->GetMass(cur_type) ),category, mass ,weight);
+		if (doProcessSplitting) l.rooContainer->InputDataPoint(Form("sig_Bin%d_",bin)+GetSignalLabel(cur_type, l),category, mass ,weight);
+
 		//rv and wv
-		if(isCorrectVertex)l.rooContainer->InputDataPoint(Form("sig_Bin%d_mass_m%.0f_rv",bin,l.normalizer()->GetMass(cur_type) ),category, mass ,weight);
-		else l.rooContainer->InputDataPoint(Form("sig_Bin%d_mass_m%.0f_wv",bin,l.normalizer()->GetMass(cur_type) ),category, mass ,weight);
+		if(isCorrectVertex){
+		  l.rooContainer->InputDataPoint(Form("sig_Bin%d_mass_m%.0f_rv",bin,l.normalizer()->GetMass(cur_type) ),category, mass ,weight);
+		  if (doProcessSplitting) l.rooContainer->InputDataPoint(Form("sig_Bin%d_",bin)+GetSignalLabel(cur_type, l)+"_rv",category, mass ,weight);
+		}
+		else {
+		  l.rooContainer->InputDataPoint(Form("sig_Bin%d_mass)m%.0f_wv",bin,l.normalizer()->GetMass(cur_type) ),category, mass ,weight);
+		  if (doProcessSplitting) l.rooContainer->InputDataPoint(Form("sig_Bin%d_",bin)+GetSignalLabel(cur_type, l)+"_wv",category, mass ,weight);
+		}
 	}//end doUnfoldHisto
 
 }
@@ -134,9 +199,15 @@ void UnfoldAnalysis::FillRooContainerSyst(LoopAll& l, const std::string &name, i
 	if (cur_type <0 ){
 		if(UDEBUG)cout<<" -- Fill RooContainer Syst -- "<<name<<endl;
 		int bin=computeGenBin(l,cur_type);
-		if (bin<0) bin=nVarCategories;
+		if ( bin<0 && !doOutOfJetAcceptance) bin=nVarCategories;
+		else {
+		  if (bin==-2 && doOutOfJetAcceptance) bin=nVarCategories;
+		  if (bin==-1 && doOutOfJetAcceptance) bin=nVarCategories+1;
+		}
 		int sig=l.normalizer()->GetMass(cur_type) ;
 		l.rooContainer->InputSystematicSet( Form("sig_Bin%d_mass_m%d",bin,sig),name,categories,mass_errors,weights);
+		l.rooContainer->InputSystematicSet( Form("sig_Bin%d_",bin)+GetSignalLabel(cur_type, l),name,categories,mass_errors,weights);
+		
 	}
 }
 
@@ -220,7 +291,7 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 	for(int igp=0;igp< l.gp_n ;igp++)
         {
 		if ( l.gp_status[igp] != 1) continue;
-		if ( l.gp_pdgid[igp] == 12 || l.gp_pdgid[igp]==14 || l.gp_pdgid[igp]==16) continue; //neutrinos
+		//if ( l.gp_pdgid[igp] == 12 || l.gp_pdgid[igp]==14 || l.gp_pdgid[igp]==16) continue; //neutrinos
 		if ( g1.DeltaR( *((TLorentzVector*)(l.gp_p4->At(igp))) ) < PhoIsoDRDiffAnalysis && pho1 !=igp ) pho1Iso += ((TLorentzVector*)(l.gp_p4->At(igp)))->Pt();
 		if ( g2.DeltaR( *((TLorentzVector*)(l.gp_p4->At(igp))) ) < PhoIsoDRDiffAnalysis && pho2 !=igp ) pho1Iso += ((TLorentzVector*)(l.gp_p4->At(igp)))->Pt();
         }
@@ -350,7 +421,9 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 			TLorentzVector j1=*((TLorentzVector*)l.genjet_algo1_p4->At(jets.begin()->second));
 			var=fabs(Hgg.Rapidity() -j1.Rapidity()); 
 		}
-	
+		else
+			var = -1;		
+		
 	}
 	else assert( 0  ); //variable not found
 
@@ -360,6 +433,8 @@ int UnfoldAnalysis::computeGenBin(LoopAll &l,int cur_type,int &ig1,int &ig2){
 
 	for(int iBin=0;iBin<nVarCategories;iBin++)
 		if( varCatBoundaries[iBin] <= var && var< varCatBoundaries[iBin+1] ) bin=iBin;	
+
+	if (var == -1) bin = -2; //out of jet acceptance
 
 //if(bin>=0)effGenCut["Full"]+=1; //DEBUG
 	if(bin>=0) 
@@ -391,6 +466,8 @@ bool UnfoldAnalysis::Analysis(LoopAll& l, Int_t jentry){
 	int g1,g2;
 	if(UDEBUG)cout<<" -- new event -- "<<l.event<<endl;
 	int bin=computeGenBin(l,cur_type,g1,g2);
+
+	if (bin==-2) bin = nVarCategories;
 
 	if (bin>=0 && doUnfoldHisto && g1>=0 && g2>=0 ){
 		float HiggsPt= ( *((TLorentzVector*)l.gp_p4->At(g1)) + *((TLorentzVector*)l.gp_p4->At(g2)) ).Pt();

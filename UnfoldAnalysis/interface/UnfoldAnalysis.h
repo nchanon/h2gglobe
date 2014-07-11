@@ -47,7 +47,7 @@ public:
   bool SkimEvents(LoopAll& l, int jentry) ; 
   //flags
   bool doUnfoldHisto;
-
+  bool doProcessSplitting;
 
 
   // generator cuts -- same as detector cuts
@@ -57,6 +57,7 @@ public:
   float PhoIsoDiffAnalysis;
   float PhoIsoDRDiffAnalysis;
   float JetPhoDRDiffAnalysis;
+  int extraBinOutOfJetAcc;
 
   //ineheredit - must not be redeclared, otherwise shadow them
 

@@ -8,4 +8,6 @@ JetEtaForDiffAnalysis=4.7
 
 nVarCategories=5
 varCatBoundaries=0.,40.,64.,104.,200.,3500.
-bkgPolOrderByCat=5,5,5,5,5,5,5,5,5,5,5,5,5,5,5
+bkgPolOrderByCat=5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5
+doOutOfJetAcceptance=1
+

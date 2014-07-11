@@ -1,5 +1,6 @@
 #include "TMath.h"
 #include "TSpline.h"
+#include "TF1.h"
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
@@ -26,6 +27,7 @@
 #include "Math/AdaptiveIntegratorMultiDim.h"
 #include "TTree.h"
 #include "TTreeFormula.h"
+#include "TMatrix.h"
 
 #include <algorithm>
 #include <cmath>
@@ -93,9 +95,9 @@ void makeSecondOrder(THnSparse * in, THnSparse * red, SparseIntegrator * norm, S
 		delete hx;
 	}
 	
-	/// norm->link();
-	/// sumX->link();
-	/// sumX2->link();
+	norm->link();
+	sumX->link();
+	sumX2->link();
 }
 
 
@@ -124,9 +126,9 @@ void makeSecondOrder(std::vector<TH1*> & histos, SparseIntegrator * norm, Sparse
 	}
 	histos.clear();
 	
-	/// norm->link();
-	/// sumX->link();
-	/// sumX2->link();
+	norm->link();
+	sumX->link();
+	sumX2->link();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -354,7 +356,7 @@ TH1 * SecondOrderModelBuilder::getPdf(int idim)
 	} else if( ranges_.size() == 3 ) {
 		return ( idim == 0 ? ((TH3*)pdf_)->ProjectionX() : 
 			 ( idim == 1 ? ((TH3*)pdf_)->ProjectionY() : ((TH3*)pdf_)->ProjectionZ() )
-			);
+			 );
 	}
 	assert(0);
 }
@@ -532,6 +534,13 @@ void appendData(RooDataHist & dest, RooDataHist &src)
 // ------------------------------------------------------------------------------------------------
 double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::vector<AbsModel *> bkg) const
 {
+
+  std::cout << "SimpleShapeFomProvider::operator() useRooSimultaneous_="<<useRooSimultaneous_<<std::endl;
+  
+  bool doDeltaMuBinOptim = true;
+
+  	float ret;
+
 	assert(sig.size() % nSubcats_ == 0);
 	assert(bkg.size() % nSubcats_ == 0);
 
@@ -553,6 +562,10 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 	std::vector<std::pair<std::string,RooAbsData*> >catData;
 	std::vector<RooRealVar *> normsToFix;
 	
+	bool CheckEndcap = false;
+	bool* dropTheEndcap = new bool[ncat];
+	for (int i=0; i<ncat; i++) dropTheEndcap[i] = false;
+
 	if( debug_ ) {
 		std::cout << "\n---------------------------------------------" << std::endl;
 		std::cout << "Num. of categories: " << ncat << " num. of subcategories: " << nSubcats_ << std::endl;
@@ -576,12 +589,20 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 		for(size_t iSig = 0; iSig < sig.size(); iSig++){
 			size_t iSubcat = iSig % nSubcats_;
 			ntot[iSubcat] += sig[iSig]->getCategoryYield(icat);
+
+			//If very low stat in the EE, do not include in the lilelihood 
+			if (CheckEndcap){
+			  if ((sig[iSig]->name()=="sigWv_EEHighR9Model" || sig[iSig]->name()=="sigWv_EELowR9Model" || sig[iSig]->name()=="sigRv_EEHighR9Model" || sig[iSig]->name()=="sigRv_EELowR9Model") && (sig[iSig]->getCategoryYield(icat)<0.05)){
+			    dropTheEndcap[icat] = true;
+			  }
+			}
+
 			if( sig[iSig]->getCategoryPdf(icat)->expectedEvents(0) <= 0 ) { 
 				return 1e+5;
 			}
-			if( debug_ ) {
+			//if( debug_ ) {
 				std::cout << "    " << sig[iSig]->name() << " (subcat " << iSubcat << "): " << sig[iSig]->getCategoryYield(icat) << "\n" ;
-			}
+				//}
 			/// std::cout << sig[iSig]->getCategoryPdf(icat)->expectedEvents(0) 
 			/// 	  << " " << sig[iSig]->getCategoryYield(icat) << std::endl;
 			if( buildPdf ) {
@@ -591,9 +612,9 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 		for(size_t iBkg = 0; iBkg < bkg.size(); iBkg++){
 			size_t iSubcat = iBkg % nSubcats_;
 			ntot[iSubcat] += bkg[iBkg]->getCategoryYield(icat);
-			if( debug_ ) {
+			//if( debug_ ) {
 				std::cout << "    " << bkg[iBkg]->name() << " (subcat " << iSubcat << "): " << bkg[iBkg]->getCategoryYield(icat) << "\n";
-			}
+				//}
 			/// std::cout << bkg[iBkg]->getCategoryPdf(icat)->expectedEvents(0) 
 			/// 	  << " " << bkg[iBkg]->getCategoryYield(icat) << std::endl;
 			if( buildPdf ) {
@@ -611,7 +632,8 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 		}
 
 		for(int iSubcat = 0; iSubcat < nSubcats_; iSubcat++){
-			//// std::cout << "Throwing Asymov " << iSubcat << " " << nSubcats_*icat+iSubcat<< " " << ntot[iSubcat] << " " <<  &asimovs[nSubcats_*icat+iSubcat] << " " <<  &pdfs[nSubcats_*icat+iSubcat] << std::endl;
+		        std::cout << "Throwing Asymov " << iSubcat << " " << nSubcats_*icat+iSubcat<< " " << ntot[iSubcat] << " " <<  &asimovs[nSubcats_*icat+iSubcat] << " " <<  &pdfs[nSubcats_*icat+iSubcat] << std::endl;
+
 			throwAsimov( ntot[iSubcat], &asimovs[nSubcats_*icat+iSubcat], &pdfs[nSubcats_*icat+iSubcat], sig[0]->getX() );
 			roocat.defineType(Form("cat_%d_%d",icat,iSubcat));
 			//// roosim.addPdf( pdfs[nSubCats_*icat+iSubcat], Form("cat_%d_%d",icat,iSubcat) );
@@ -621,9 +643,12 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 	}
 	
 	RooAbsReal * nll;
+	RooAbsReal ** nlli = new RooAbsReal*[ncat];
 	std::vector<RooAbsReal*> garbageColl;
 	std::vector<RooAbsData*> garbageData;
+
 	if( useRooSimultaneous_ ) {
+	  
 		RooSimultaneous * roosim = new RooSimultaneous("SimpleShapeFomFit","",roocat);
 		garbageColl.push_back(roosim);
 		//// RooRealVar * weight = new RooRealVar("weight","weight",1.); 
@@ -645,7 +670,9 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 			roosim->createNLL( *combData, RooFit::Extended(), RooFit::NumCPU(ncpu_) )  
 			);
 		garbageColl.push_back(nll);
+	  
 	} else { 
+	  if (!doDeltaMuBinOptim){
 		RooArgSet nlls;
 		for(size_t icat=0; icat<totcat; ++icat) {
 			//// RooAbsReal *inll = pdfs[icat].createNLL( asimovs[icat], RooFit::Extended() );				
@@ -667,7 +694,203 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 		nll = new RooAddition("nll","nll",nlls);
 		//// nll->Print("V");
 		garbageColl.push_back(nll);
+	  }
+	  else if (doDeltaMuBinOptim){
+	 
+	    RooArgSet* nlls = new RooArgSet[ncat];
+	    for(size_t ibin = 0; ibin < ncat; ibin++){
+	      std::cout << "Bin "<<ibin << " dropTheEndcap[icat]="<<dropTheEndcap[ibin] << std::endl;
+	      for (size_t isubcat=0; isubcat<nSubcats_ ; isubcat++){
+		//size_t iSubcat = iCat % nSubcats_;
+		size_t icat = ibin*nSubcats_+isubcat;
+		if ( !(dropTheEndcap[ibin]==true && (isubcat==2 || isubcat==3))) {
+		  std::cout << "Include icat="<<icat<<" isubcat="<<isubcat<<std::endl;
+		  RooAbsReal *inll = ( constraints_.getSize() > 0 ? 
+				       pdfs[icat].createNLL( asimovs[icat], RooFit::Extended(),
+							     RooFit::ExternalConstraints(constraints_) ) : 
+				       pdfs[icat].createNLL( asimovs[icat], RooFit::Extended() ) 
+				       );
+		  nlls[ibin].add(*inll);
+		  garbageColl.push_back(inll);
+		}
+	      }
+	      nlli[ibin] = new RooAddition("nll","nll",nlls[ibin]);
+	      //else (doDeltaMuBinOptim) nll  = new RooAddition("nll","nll",nlls[ibin]);
+	    }
+	  }
 	}
+	
+	std::cout << "poi number "<<pois_.size()<<endl;
+
+	double Mes = 0;
+	bool* sconverged = new bool[ncat];
+	bool* s08converged = new bool[ncat];
+	bool* s12converged = new bool[ncat];
+	bool* bconverged = new bool[ncat];
+	bool bconvergedSignif = false;
+	bool sconvergedSignif = false;
+
+	if (doDeltaMuBinOptim){
+	  //Minimization for each bin
+	  double* MuError = new double[ncat];
+
+	  for (size_t ibin = 0; ibin < ncat; ibin++){
+
+	    std::cout << "Bin "<<ibin<<std::endl;
+
+	    // S+B fit
+	    for(int ipoi=0; ipoi<pois_.size(); ++ipoi ) {
+	      pois_[ipoi]->setVal(1.);
+	      pois_[ipoi]->setConstant(false);
+	    }
+	    RooMinimizer minimsb(*(nlli[ibin]));
+	    minimsb.setMinimizerType(minimizer_.c_str());
+	    minimsb.setPrintLevel(-1);//-1
+	    sconverged[ibin] = false;
+	    for(int ii=minStrategy_; ii<3; ++ii) {
+	      minimsb.setStrategy(ii);
+	      if( ! minimsb.migrad() ) { 
+		sconverged[ibin] = true;
+		break; 
+	      }
+	    }
+	    double minNllsb = nlli[ibin]->getVal();
+	    std::cout << "mu=1 minNll="<<minNllsb<<" poi0="<<pois_[0]->getVal() << " sconverged="<<sconverged[ibin]<<std::endl;
+	    
+	    // 0.8*S+B fit
+	    for(int ipoi=0; ipoi<pois_.size(); ++ipoi ) {
+	      pois_[ipoi]->setVal(0.8);
+	      pois_[ipoi]->setConstant(true);
+	    }
+	    RooMinimizer minimsb08(*(nlli[ibin]));
+	    minimsb08.setMinimizerType(minimizer_.c_str());
+	    minimsb08.setPrintLevel(-1);
+	    s08converged[ibin] = false;
+	    for(int ii=minStrategy_; ii<3; ++ii) {
+	      minimsb08.setStrategy(ii);
+	      if( ! minimsb08.migrad() ) { 
+		s08converged[ibin] = true;
+		break; 
+	      }
+	    }
+	    double minNllsb08 = nlli[ibin]->getVal();
+	    std::cout << "mu=0.8 minNll="<<minNllsb08<<" poi0="<<pois_[0]->getVal()<<" s08converged="<<s08converged[ibin]<<std::endl;
+	    
+	    // 1.2*S+B fit
+	    for(int ipoi=0; ipoi<pois_.size(); ++ipoi ) {
+	      pois_[ipoi]->setVal(1.2);
+	      pois_[ipoi]->setConstant(true);
+	    }
+	    RooMinimizer minimsb12(*(nlli[ibin]));
+	    minimsb12.setMinimizerType(minimizer_.c_str());
+	    minimsb12.setPrintLevel(-1);
+	    s12converged[ibin] = false;
+	    for(int ii=minStrategy_; ii<3; ++ii) {
+	      minimsb12.setStrategy(ii);
+	      if( ! minimsb12.migrad() ) { 
+		s12converged[ibin] = true;
+		break; 
+	      }
+	    }
+	    double minNllsb12 = nlli[ibin]->getVal();
+	    std::cout << "mu=1.2 minNll="<<minNllsb12<<" poi0="<<pois_[0]->getVal()<<" s12converged="<<s12converged[ibin]<<std::endl;
+	    
+	    // B-only fit
+	    for(int ipoi=0; ipoi<pois_.size(); ++ipoi ) {
+	      pois_[ipoi]->setVal(0.);
+	      pois_[ipoi]->setConstant(true);
+	    }
+	    RooMinimizer minimb(*(nlli[ibin]));
+	    minimb.setMinimizerType(minimizer_.c_str());
+	    minimb.setPrintLevel(-1);//-1
+	    bconverged[ibin] = false;
+	    for(int ii=minStrategy_; ii<3; ++ii) {
+	      minimb.setStrategy(ii);
+	      if( ! minimb.migrad() ) { 
+		bconverged[ibin] = true;
+		break; 
+	      }
+	    }
+	    double minNllb = nlli[ibin]->getVal();     
+	    std::cout << "mu=0 minNll="<<minNllb<<" poi0="<<pois_[0]->getVal()<<" bconverged="<<bconverged[ibin]<<std::endl;
+	  
+
+	    double qA = -2.*(minNllb - minNllsb);
+	    std::cout << "qA="<<qA<<std::endl;
+	  
+	    double qA08 = -2.*(minNllb - minNllsb08);
+	    std::cout << "qA08="<<qA08<<std::endl;
+	    
+	    double qA12 = -2.*(minNllb - minNllsb12);
+	    std::cout << "qA12="<<qA12<<std::endl;
+	    
+	    std::cout << "Parabola computation with matrix inversion"<<std::endl;
+	  
+	    TMatrixD nllval(3,1);
+	    nllval[0][0] = qA08;
+	    nllval[1][0] = qA;
+	    nllval[2][0] = qA12;
+	  
+	    TMatrixD matrix(3,3);
+	    matrix[0][0] = 0.8*0.8;
+	    matrix[0][1] = 0.8;
+	    matrix[0][2] = 1;
+	    matrix[1][0] = 1;
+	    matrix[1][1] = 1;
+	    matrix[1][2] = 1;
+	    matrix[2][0] = 1.2*1.2;
+	    matrix[2][1] = 1.2;
+	    matrix[2][2] = 1;
+	    matrix.Invert();
+	  
+	    TMatrixD Result(3,1);
+	    Result = matrix * nllval;
+	    std::cout << "a="<<Result[0][0]<<" b="<<Result[1][0]<<" c="<<Result[2][0]<<std::endl;
+	    
+	    double val_old=100;
+	    double x1=0, x2=0;
+	    for (int i=0;i<1000; i++) {
+	      double x = -5+((double)i)*0.01;
+	      //double val = func.Eval(x);
+	      double val = Result[0][0]*x*x+Result[1][0]*x+Result[2][0];
+	      //std::cout << "Matrix mu="<<x<<" val="<<Result[0][0]*x*x+Result[1][0]*x+Result[2][0]<<std::endl;
+	      //std::cout << "Fit    mu="<<x<<" val="<<val<<std::endl;
+	      if (val_old>qA+1 && val<qA+1){
+		x1=x;
+		std::cout <<"x1="<<x<<std::endl;
+	      }
+	      if (val_old<qA+1 && val>qA+1) {
+		x2=x;
+		std::cout <<"x2="<<x<<std::endl;
+	      }
+	      val_old = val;
+	    }
+	    double DeltaMu = (x2-x1)/2.;
+	    std::cout<< "Bin "<<ibin<< " MuError="<<DeltaMu<<std::endl;
+	    MuError[ibin] = DeltaMu;
+	  }
+
+	  //Compute the measure
+	  double Sum = 0;
+	  std::cout << "This iteration summary:"<<std::endl;
+	  for (int i=0; i<ncat; i++){
+	    std::cout << "Bin "<<i<<" MuError="<<MuError[i]<<std::endl;
+	    for (int j=0; j<i; j++){
+	      //if (abs(MuError[i] - MuError[j])>Mes) Mes = abs(MuError[i] - MuError[j]);
+	      Mes += (MuError[i] - MuError[j])*(MuError[i] - MuError[j]);
+	    }
+	    //Sum += MuError[i]*MuError[i];
+	  }
+	  //Mes /= Sum;
+	  //Mes *= 1000.;
+	  Mes = -1./Mes;
+	  std::cout << "Mesure = "<<Mes << std::endl;
+
+	  ret = Mes;
+	}
+
+	if (!doDeltaMuBinOptim){
+
 	
 	// S+B fit
 	for(int ipoi=0; ipoi<pois_.size(); ++ipoi ) {
@@ -676,16 +899,17 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 	}
 	RooMinimizer minimsb(*nll);
 	minimsb.setMinimizerType(minimizer_.c_str());
-	minimsb.setPrintLevel(-1);
-	bool sconverged = false;
+	minimsb.setPrintLevel(-1);//-1
 	for(int ii=minStrategy_; ii<3; ++ii) {
 		minimsb.setStrategy(ii);
 		if( ! minimsb.migrad() ) { 
-			sconverged = true;
+			sconvergedSignif = true;
 			break; 
 		}
 	}
 	double minNllsb = nll->getVal();
+	std::cout << "mu=1 minNll="<<minNllsb<<" poi0="<<pois_[0]->getVal() << " sconverged="<<sconvergedSignif<<std::endl;
+
 
 	std::vector<RooPlot *> frames;
 	if( debug_ ) {
@@ -708,26 +932,34 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 	}
 	RooMinimizer minimb(*nll);
 	minimb.setMinimizerType(minimizer_.c_str());
-	minimb.setPrintLevel(-1);
-	bool bconverged = false;
+	minimb.setPrintLevel(-1);//-1
 	for(int ii=minStrategy_; ii<3; ++ii) {
 		minimb.setStrategy(ii);
 		if( ! minimb.migrad() ) { 
-			bconverged = true;
+			bconvergedSignif = true;
 			break; 
 		}
 	}
 	double minNllb = nll->getVal();     
+	std::cout << "mu=0 minNll="<<minNllb<<" poi0="<<pois_[0]->getVal()<<" bconvergedSignif="<<bconvergedSignif<<std::endl;
 	
 	
 	double qA = -2.*(minNllb - minNllsb);
+	std::cout << "qA="<<qA<<std::endl;
+	std::cout << "S = "<<-sqrt(-qA)<<std::endl;
+	Mes = qA;
 	
+	
+
 	for(size_t ii=0; ii<garbageColl.size(); ++ii) {
 		delete garbageColl[ii];
 	}
 	for(size_t ii=0; ii<garbageData.size(); ++ii) {
 		delete garbageData[ii];
 	}
+
+	
+	
 	
 	if( debug_ ) {
 		for(int icat=0; icat<ncat; ++icat) {
@@ -746,8 +978,32 @@ double SimpleShapeFomProvider::operator() ( std::vector<AbsModel *> sig, std::ve
 		}
 	}
 	
-	float ret = -sqrt(-qA);
-	if( ! isfinite(ret) || ! sconverged || ! bconverged ) { ret=0.; }
+
+	ret = -sqrt(-qA);
+	}
+
+       
+	std::cout <<"ret="<<ret<<std::endl;
+
+
+	bool Sconverged = 1;
+	bool Sconverged08 = 1;
+	bool Sconverged12 = 1;
+	bool Bconverged =1 ;
+	for (int i=0; i<ncat; i++) {
+	  Sconverged *= sconverged[i];
+	  Sconverged08 *= s08converged[i];
+	  Sconverged12 *= s12converged[i];
+	  Bconverged *= bconverged[i];
+	}
+
+	if (doDeltaMuBinOptim){
+	  if( ! isfinite(ret) || ! Sconverged || ! Sconverged08 || ! Sconverged12 || ! Bconverged ) { ret=0.; }
+	}
+	else if (!doDeltaMuBinOptim){
+	  if( ! isfinite(ret) || ! sconvergedSignif || ! bconvergedSignif ) { ret=0.; }
+	}
+
 	return ret;
 }
 

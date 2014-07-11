@@ -14,3 +14,4 @@ JetPhoDRDiffAnalysis=0.5
 JetEtaForDiffAnalysis=2.5
 
 doUnfoldHisto=1 
+doProcessSplitting=0

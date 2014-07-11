@@ -48,6 +48,7 @@ StatAnalysis::StatAnalysis()  :
     doSpinAnalysis = false;
     doDifferentialAnalysis = false;
     JetPtForDiffAnalysis = 25.;
+    doOutOfJetAcceptance=0;
     
     runJetsForSpin=false;
     splitwzh=false;
@@ -201,7 +202,11 @@ void StatAnalysis::Init(LoopAll& l)
     //    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories+nVHmetCategories);  //met at analysis step
     //    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories);
     if (doSpinAnalysis) nCategories_*=nCosThetaCategories;
-    if (doDifferentialAnalysis) nCategories_*=nVarCategories;
+
+    if (doDifferentialAnalysis){
+	if (doOutOfJetAcceptance) nCategories_*=(nVarCategories+1);
+	else nCategories_*=nVarCategories;
+    }
 
     effSmearPars.categoryType = effPhotonCategoryType;
     effSmearPars.n_categories = effPhotonNCat;
@@ -2105,7 +2110,7 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
 	    //if (dphi>TMath::Pi()) dphi=2*TMath::Pi()-dphi;
 	    //if (dphi<-TMath::Pi()) dphi=-2*TMath::Pi()-dphi;
 	    //DiffAna_dPhijj = dphi;
-        DiffAna_dPhijj = fabs(jet1->DeltaPhi(*jet2));
+	    DiffAna_dPhijj = fabs(jet1->DeltaPhi(*jet2));
 	    DiffAna_dPhiggjj = fabs(diphoton.DeltaPhi(dijet));
 	}
     }
@@ -2121,7 +2126,7 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
     }
     else if (VarDef=="CosThetaStar") varValue = TMath::Abs(getCosThetaCS(lead_p4,sublead_p4,l.sqrtS));
     else if (VarDef=="Ygg") varValue = TMath::Abs(diphoton.Rapidity());
-    else if (VarDef=="Njets" || VarDef=="LeadJetpT" || VarDef=="Mjj" || VarDef=="dPhijj" || VarDef=="Zepp" || VarDef=="dPhiggjj" || VarDef == "dEtajj" || "dRapidityHiggsJet" ){
+    else if (VarDef=="Njets" || VarDef=="LeadJetpT" || VarDef=="Mjj" || VarDef=="dPhijj" || VarDef=="Zepp" || VarDef=="dPhiggjj" || VarDef=="dEtajj" || VarDef=="dRapidityHiggsJet" ){
 
 	if (VarDef=="Njets") {
 	    varValue = njet;
@@ -2172,16 +2177,19 @@ void StatAnalysis::computeDifferentialVariableCategory(LoopAll &l, int &category
     for (int scat=0; scat<nVarCategories; scat++){
         if (varValue>=varCatBoundaries[scat] && varValue<varCatBoundaries[scat+1]) varCategory=scat;
     }
+    if (varValue==-99 && doOutOfJetAcceptance) varCategory = nVarCategories;
 
     if (PADEBUG) {
-	cout << "varCategory="<<varCategory<<" (category*nVarCategories)+varCategory="<<(category*nVarCategories)+varCategory<<endl;
+	cout << "varValue="<<varValue<<" category="<<category <<" varCategory="<<varCategory<<" (category*nVarCategories)+varCategory="<<(category*nVarCategories)+varCategory<<endl;
     }
 
 	//cout << "varCategory="<<varCategory<<"category="<<category<<" (category*nVarCategories)+varCategory="<<(category*nVarCategories)+varCategory<<endl; //debug
 
     if (varCategory==-1) category=-1;
-    else category = (category*nVarCategories)+varCategory;
-
+    else {
+	if (doOutOfJetAcceptance) category = (category*(nVarCategories+1))+varCategory;
+	else category = (category*nVarCategories)+varCategory;
+    }
     
 
 }

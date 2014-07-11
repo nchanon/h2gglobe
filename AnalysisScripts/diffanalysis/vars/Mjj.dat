@@ -2,5 +2,6 @@
 VarDef=Mjj
 nVarCategories=4
 varCatBoundaries=0.,100.,235,1000.,3000.
-bkgPolOrderByCat=5,5,5,5,5,5,5,5,5,5,5,5
+bkgPolOrderByCat=5,5,5,5,5,5,5,5,5,5,5,5,5,5,5
+doOutOfJetAcceptance=1
 
